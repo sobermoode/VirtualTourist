@@ -22,7 +22,9 @@ class Pin: NSObject
     {
         return mapPin.annotation.coordinate
     }
-    // var photoAlbum: [ Photo ] uncomment after implementing Photo class
+    
+    // TODO: uncomment after implementing the Photo class
+    // var photoAlbum: [ Photo ]
     
     init( mapPin: MKPinAnnotationView )
     {

@@ -14,6 +14,7 @@
 		81ADBCF41B82EABB0028E1C8 /* VirtualTouristTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBCF31B82EABA0028E1C8 /* VirtualTouristTests.swift */; };
 		81ADBCFE1B82EB400028E1C8 /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBCFD1B82EB400028E1C8 /* Pin.swift */; };
 		81ADBD001B82F00D0028E1C8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81ADBCFF1B82F00D0028E1C8 /* Main.storyboard */; };
+		81ADBD021B82F0C60028E1C8 /* TravelMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBD011B82F0C60028E1C8 /* TravelMapViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +39,7 @@
 		81ADBCF31B82EABA0028E1C8 /* VirtualTouristTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualTouristTests.swift; sourceTree = "<group>"; };
 		81ADBCFD1B82EB400028E1C8 /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
 		81ADBCFF1B82F00D0028E1C8 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		81ADBD011B82F0C60028E1C8 /* TravelMapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TravelMapViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,12 +81,13 @@
 		81ADBCD71B82EABA0028E1C8 /* VirtualTourist */ = {
 			isa = PBXGroup;
 			children = (
+				81ADBCE61B82EABA0028E1C8 /* LaunchScreen.xib */,
 				81ADBCDA1B82EABA0028E1C8 /* AppDelegate.swift */,
 				81ADBCE41B82EABA0028E1C8 /* Images.xcassets */,
-				81ADBCE61B82EABA0028E1C8 /* LaunchScreen.xib */,
 				81ADBCDC1B82EABA0028E1C8 /* VirtualTourist.xcdatamodeld */,
 				81ADBCFF1B82F00D0028E1C8 /* Main.storyboard */,
 				81ADBCFD1B82EB400028E1C8 /* Pin.swift */,
+				81ADBD011B82F0C60028E1C8 /* TravelMapViewController.swift */,
 				81ADBCD81B82EABA0028E1C8 /* Supporting Files */,
 			);
 			path = VirtualTourist;
@@ -218,6 +221,7 @@
 				81ADBCFE1B82EB400028E1C8 /* Pin.swift in Sources */,
 				81ADBCDE1B82EABA0028E1C8 /* VirtualTourist.xcdatamodeld in Sources */,
 				81ADBCDB1B82EABA0028E1C8 /* AppDelegate.swift in Sources */,
+				81ADBD021B82F0C60028E1C8 /* TravelMapViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

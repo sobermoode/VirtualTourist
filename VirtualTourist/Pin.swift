@@ -33,6 +33,9 @@ class Pin: NSObject
         
         super.init()
         
-        Pin.droppedPins.updateValue( self, forKey: self.pinNumber as Int )
+        Pin.droppedPins.updateValue(
+            self,
+            forKey: Int( self.pinNumber )
+        )
     }
 }

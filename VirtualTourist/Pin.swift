@@ -12,24 +12,39 @@ import MapKit
 class Pin: NSObject
 {
     // class properties
-    static var droppedPins = [ Int : Pin ]()
+    static var droppedPins = [ Int : Pin ]() // its possible i dont need this anymore
     static var totalPins: Int = 0
     
     // instance properties
-    var pinNumber: NSNumber
-    var mapPin: MKPinAnnotationView
+    var mapPinView: TravelMapAnnotationView
+    // TODO: make sure these computed properties are ever actually needed anywhere in the project
+    var pinNumber: Int!
+    {
+        return mapPinView.pinNumber
+    }
     var coordinate: CLLocationCoordinate2D
     {
-        return mapPin.annotation.coordinate
+        return mapPinView.annotation.coordinate
     }
     
     // TODO: uncomment after implementing the Photo class
     // var photoAlbum: [ Photo ]
     
-    init( mapPin: MKPinAnnotationView )
+    init( coordinate: CLLocationCoordinate2D )
     {
-        self.pinNumber = ++Pin.totalPins
-        self.mapPin = mapPin
+        // update the total number of pins on the map
+        ++Pin.totalPins
+        
+        // create an annotation
+        let newAnnotation = MKPointAnnotation()
+        newAnnotation.coordinate = coordinate
+        
+        // create the pin view that will actually appear on the map
+        self.mapPinView = TravelMapAnnotationView(
+            annotation: newAnnotation,
+            reuseIdentifier: "mapPin"
+        )
+        self.mapPinView.pinNumber = Pin.totalPins
         
         super.init()
         
@@ -37,5 +52,10 @@ class Pin: NSObject
             self,
             forKey: Int( self.pinNumber )
         )
+    }
+    
+    class func getTotalPins() -> Int
+    {
+        return Pin.totalPins
     }
 }

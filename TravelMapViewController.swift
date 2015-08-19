@@ -34,7 +34,7 @@ class TravelMapViewController: UIViewController,
     var inEditMode: Bool = false
     
     // for use with identifying selected pins
-    var totalPinsOnMap = 0
+    var totalPinsOnMap: Int = 0
     var pinIDForAnnotation = [ MKPointAnnotation : Int ]()
     
     override func viewWillAppear( animated: Bool )
@@ -77,26 +77,22 @@ class TravelMapViewController: UIViewController,
             return
         }
         
-        // get the long press recognizer and drop a pin if a long press starts
+        // get the long press recognizer and drop a pin if a long press begins
         let recognizer = self.view.gestureRecognizers?.first as! UILongPressGestureRecognizer
         switch recognizer.state
         {
             case .Began:
                 // convert the point in the view to a map coordinate
                 // and create a map annotation
-                let mapCoordinate = mapView.convertPoint(
+                let mapCoordinate: CLLocationCoordinate2D = mapView.convertPoint(
                     recognizer.locationInView( self.view ),
                     toCoordinateFromView: self.view
                 )
                 
-                // TODO: 4 instead of creating an annotation view here, and then creating a Pin object
-                // in another step, use a function on the Pin class as part of the Pin initializer,
-                // and then add the annotation by returning it from the new Pin object.
-                let newAnnotation = MKPointAnnotation()
-                newAnnotation.coordinate = mapCoordinate
+                let newPin = Pin( coordinate: mapCoordinate )
                 
                 // add the annotation to the map
-                mapView.addAnnotation( newAnnotation )
+                mapView.addAnnotation( newPin.mapPinView.annotation )
             
                 return
             
@@ -111,7 +107,6 @@ class TravelMapViewController: UIViewController,
         }
     }
     
-    // TODO: 5 don't use totalPinsOnMap; use a getter for the Pin class to find out how many pins there are
     func mapView(
         mapView: MKMapView!,
         viewForAnnotation annotation: MKAnnotation!
@@ -120,7 +115,6 @@ class TravelMapViewController: UIViewController,
         if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
         {
             newAnnotationView.annotation = annotation
-            newAnnotationView.pinNumber = ++totalPinsOnMap
             
             return newAnnotationView
         }
@@ -130,7 +124,6 @@ class TravelMapViewController: UIViewController,
                 annotation: annotation,
                 reuseIdentifier: "mapPin"
             )
-            newAnnotationView.pinNumber = ++totalPinsOnMap
             
             return newAnnotationView
         }
@@ -150,7 +143,6 @@ class TravelMapViewController: UIViewController,
         else
         {
             // remove the selected pin
-            
         }
     }
     

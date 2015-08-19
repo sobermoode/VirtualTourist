@@ -11,27 +11,29 @@ import MapKit
 
 class TravelMapAnnotationView: MKPinAnnotationView
 {
+    // this keeps track of the Pin on the map view
     var pinNumber: Int!
     
-    override init!(annotation: MKAnnotation!, reuseIdentifier: String!) {
-        println( "initing a TravelMapAnnotationView..." )
-        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+    override init!(
+        annotation: MKAnnotation!,
+        reuseIdentifier: String!
+    )
+    {
+        super.init(
+            annotation: annotation,
+            reuseIdentifier: reuseIdentifier
+        )
+        
+        self.pinNumber = Pin.getTotalPins()
     }
 
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    required init( coder aDecoder: NSCoder )
+    {
+        fatalError( "init(coder:) has not been implemented" )
     }
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    override init( frame: CGRect )
+    {
+        super.init( frame: frame )
     }
-
-    /*
-    // Only override drawRect: if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
-    override func drawRect(rect: CGRect) {
-        // Drawing code
-    }
-    */
-
 }

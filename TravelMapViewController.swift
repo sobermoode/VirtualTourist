@@ -223,6 +223,22 @@ class TravelMapViewController: UIViewController,
         if !inEditMode
         {
             // segue to the photo album
+            let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
+            
+            if let location = Pin.getPin( selectedPin.pinNumber )
+            {
+                photoAlbum.location = location
+                
+                presentViewController(
+                    photoAlbum,
+                    animated: true,
+                    completion: nil
+                )
+            }
+            else
+            {
+                println( "There was a problem finding that location." )
+            }
         }
         else
         {

@@ -33,7 +33,6 @@ class TravelMapViewController: UIViewController,
     // flag to know what action to take when an annotation in selected;
     // if editing pins, delete selected pin,
     // otherwise, segue to the selected pin's photo album
-    // TODO: 3 pinch-and-zoom gestures break edit mode. need to disable them in edit mode.
     var inEditMode: Bool = false
     
     // MARK: Set-up functions
@@ -111,6 +110,9 @@ class TravelMapViewController: UIViewController,
         editPinsButton.title = "Done"
         editPinsButton.action = "doneEditingPins:"
         
+        // disable zooming; this fixes a bug
+        mapView.zoomEnabled = false
+        
         // set the editing flag
         inEditMode = true
     }
@@ -122,6 +124,8 @@ class TravelMapViewController: UIViewController,
         
         editPinsButton.title = "Edit"
         editPinsButton.action = "editPins:"
+        
+        mapView.zoomEnabled = true
         
         inEditMode = false
     }
@@ -165,6 +169,8 @@ class TravelMapViewController: UIViewController,
                 return
         }
     }
+    
+    // MARK: MKMapViewDelegate functions
     
     func mapView(
         mapView: MKMapView!,

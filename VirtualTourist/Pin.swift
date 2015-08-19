@@ -54,6 +54,15 @@ class Pin: NSObject
         )
     }
     
+    class func removePin( pinNumber: Int )
+    {
+        // remove the Pin from the model
+        Pin.droppedPins.removeValueForKey( pinNumber )
+        
+        // update the total number of pins on the map
+        --Pin.totalPins
+    }
+    
     class func getTotalPins() -> Int
     {
         return Pin.totalPins

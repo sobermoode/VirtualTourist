@@ -33,6 +33,10 @@ class TravelMapViewController: UIViewController,
     // otherwise, segue to the selected pin's photo album
     var inEditMode: Bool = false
     
+    // for use with identifying selected pins
+    var totalPinsOnMap = 0
+    var pinIDForAnnotation = [ MKPointAnnotation : Int ]()
+    
     override func viewWillAppear( animated: Bool )
     {
         // TODO: 1-1 get the map's region from NSUserDefaults
@@ -59,38 +63,39 @@ class TravelMapViewController: UIViewController,
         self.view.addGestureRecognizer( pinDropper )
         
         // TODO: 3 get the map region from NSUserDefaults
+        
         // set the map region
         mapView.region = defaultRegion
     }
     
     func dropPin( sender: UILongPressGestureRecognizer )
     {
-        println( "Would be dropping a pin... from sender: \( sender )" )
-        
+        // don't drop pins in edit mode;
+        // it messes up the view-shifting functionality
         if inEditMode
         {
             return
         }
         
+        // get the long press recognizer and drop a pin if a long press starts
         let recognizer = self.view.gestureRecognizers?.first as! UILongPressGestureRecognizer
         switch recognizer.state
         {
             case .Began:
+                // convert the point in the view to a map coordinate
+                // and create a map annotation
                 let mapCoordinate = mapView.convertPoint(
                     recognizer.locationInView( self.view ),
                     toCoordinateFromView: self.view
                 )
                 
+                // TODO: 4 instead of creating an annotation view here, and then creating a Pin object
+                // in another step, use a function on the Pin class as part of the Pin initializer,
+                // and then add the annotation by returning it from the new Pin object.
                 let newAnnotation = MKPointAnnotation()
                 newAnnotation.coordinate = mapCoordinate
                 
-                let newMapPin = MKPinAnnotationView(
-                    annotation: newAnnotation,
-                    reuseIdentifier: "mapPin"
-                )
-                
-                let newPin = Pin( mapPin: newMapPin )
-                
+                // add the annotation to the map
                 mapView.addAnnotation( newAnnotation )
             
                 return
@@ -105,4 +110,53 @@ class TravelMapViewController: UIViewController,
                 return
         }
     }
+    
+    // TODO: 5 don't use totalPinsOnMap; use a getter for the Pin class to find out how many pins there are
+    func mapView(
+        mapView: MKMapView!,
+        viewForAnnotation annotation: MKAnnotation!
+    ) -> MKAnnotationView!
+    {
+        if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
+        {
+            newAnnotationView.annotation = annotation
+            newAnnotationView.pinNumber = ++totalPinsOnMap
+            
+            return newAnnotationView
+        }
+        else
+        {
+            let newAnnotationView = TravelMapAnnotationView(
+                annotation: annotation,
+                reuseIdentifier: "mapPin"
+            )
+            newAnnotationView.pinNumber = ++totalPinsOnMap
+            
+            return newAnnotationView
+        }
+    }
+    
+    func mapView(
+        mapView: MKMapView!,
+        didSelectAnnotationView view: MKAnnotationView!
+    )
+    {
+        let selectedPin = view as! TravelMapAnnotationView
+        
+        if !inEditMode
+        {
+            // segue to the photo album
+        }
+        else
+        {
+            // remove the selected pin
+            
+        }
+    }
+    
+    /*
+    func mapView(mapView: MKMapView!, regionDidChangeAnimated animated: Bool) {
+        // code
+    }
+    */
 }

@@ -170,7 +170,10 @@ class TravelMapViewController: UIViewController,
         }
         else
         {
-            // remove the selected pin
+            // remove the selected pin from the map,
+            // remove the Pin from the model
+            mapView.removeAnnotation( selectedPin.annotation )
+            Pin.removePin( selectedPin.pinNumber )
         }
     }
     

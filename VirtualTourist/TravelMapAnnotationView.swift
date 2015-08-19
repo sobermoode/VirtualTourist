@@ -24,7 +24,7 @@ class TravelMapAnnotationView: MKPinAnnotationView
             reuseIdentifier: reuseIdentifier
         )
         
-        self.pinNumber = Pin.getTotalPins()
+        self.pinNumber = Pin.getCurrentPinNumber()
     }
 
     required init( coder aDecoder: NSCoder )

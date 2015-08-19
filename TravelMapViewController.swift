@@ -142,9 +142,15 @@ class TravelMapViewController: UIViewController,
     {
         if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
         {
-            newAnnotationView.annotation = annotation
-            
-            return newAnnotationView
+            if let theAnnotation = Pin.getAnnotationForPinNumber( newAnnotationView.pinNumber )
+            {
+                newAnnotationView.annotation = theAnnotation
+                return newAnnotationView
+            }
+            else
+            {
+                println( "There was an error with the Pin." )
+            }
         }
         else
         {
@@ -155,6 +161,8 @@ class TravelMapViewController: UIViewController,
             
             return newAnnotationView
         }
+        
+        return TravelMapAnnotationView(annotation: annotation, reuseIdentifier: "mapPin")
     }
     
     func mapView(

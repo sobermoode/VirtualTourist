@@ -55,6 +55,9 @@ class TravelMapViewController: UIViewController,
         // TODO: 1-2 set the map's region, from step 1-1
         // TODO: 2-2 add all the pins, from step 2-1
         
+        // add the initial action to the editPinsButton
+        editPinsButton.action = "editPins:"
+        
         // create the recognizer to drop pins
         let pinDropper = UILongPressGestureRecognizer(
             target: self,
@@ -65,7 +68,32 @@ class TravelMapViewController: UIViewController,
         // TODO: 3 get the map region from NSUserDefaults
         
         // set the map region
+        // TODO: 4 add this as an else clause to getting the region from NSUserDefaults
         mapView.region = defaultRegion
+    }
+    
+    func editPins( sender: UIBarButtonItem )
+    {
+        // reveal the instruction label
+        mapView.frame.origin.y -= 75.0
+        
+        // modify the button
+        editPinsButton.title = "Done"
+        editPinsButton.action = "doneEditingPins:"
+        
+        // set the editing flag
+        inEditMode = true
+    }
+    
+    func doneEditingPins( sender: UIBarButtonItem )
+    {
+        // reset the map, button, and flag
+        mapView.frame.origin.y += 75.0
+        
+        editPinsButton.title = "Edit"
+        editPinsButton.action = "editPins:"
+        
+        inEditMode = false
     }
     
     func dropPin( sender: UILongPressGestureRecognizer )

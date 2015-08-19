@@ -12,8 +12,9 @@ import MapKit
 class Pin: NSObject
 {
     // class properties
-    static var droppedPins = [ Int : Pin ]() // its possible i dont need this anymore
-    static var totalPins: Int = 0
+    static var droppedPins = [ Int : Pin ]()
+    static var totalPins: Int = 0 // its possible i dont need this anymore, either
+    static var currentPinNumber: Int = 0
     
     // instance properties
     var mapPinView: TravelMapAnnotationView
@@ -33,7 +34,10 @@ class Pin: NSObject
     init( coordinate: CLLocationCoordinate2D )
     {
         // update the total number of pins on the map
-        ++Pin.totalPins
+        // ++Pin.totalPins
+        
+        // update the current pin number
+        ++Pin.currentPinNumber
         
         // create an annotation
         let newAnnotation = MKPointAnnotation()
@@ -44,13 +48,13 @@ class Pin: NSObject
             annotation: newAnnotation,
             reuseIdentifier: "mapPin"
         )
-        self.mapPinView.pinNumber = Pin.totalPins
+        self.mapPinView.pinNumber = Pin.currentPinNumber
         
         super.init()
         
         Pin.droppedPins.updateValue(
             self,
-            forKey: Int( self.pinNumber )
+            forKey: Pin.currentPinNumber
         )
     }
     
@@ -59,12 +63,36 @@ class Pin: NSObject
         // remove the Pin from the model
         Pin.droppedPins.removeValueForKey( pinNumber )
         
+        // no more annotations to reuse
+        if Pin.droppedPins.count == 0
+        {
+            TravelMapAnnotationView.resetReuseFlag()
+        }
+        
         // update the total number of pins on the map
-        --Pin.totalPins
+        // --Pin.totalPins
     }
     
-    class func getTotalPins() -> Int
+    class func getCurrentPinNumber() -> Int
     {
-        return Pin.totalPins
+        return Pin.currentPinNumber
+    }
+    
+    class func getAnnotationForPinNumber( pinNumber: Int ) -> MKAnnotation?
+    {
+        if let thePin = Pin.droppedPins[ pinNumber ]
+        {
+            return thePin.mapPinView.annotation
+        }
+        else
+        {
+            if !TravelMapAnnotationView.reuseMe
+            {
+                println( "There was an error finding that Pin." )
+                return nil
+            }
+        }
+        
+        return nil
     }
 }

@@ -63,6 +63,12 @@ class Pin: NSObject
         // remove the Pin from the model
         Pin.droppedPins.removeValueForKey( pinNumber )
         
+        // no more annotations to reuse
+        if Pin.droppedPins.count == 0
+        {
+            TravelMapAnnotationView.resetReuseFlag()
+        }
+        
         // update the total number of pins on the map
         // --Pin.totalPins
     }
@@ -80,8 +86,13 @@ class Pin: NSObject
         }
         else
         {
-            println( "There was an error finding that Pin." )
-            return nil
+            if !TravelMapAnnotationView.reuseMe
+            {
+                println( "There was an error finding that Pin." )
+                return nil
+            }
         }
+        
+        return nil
     }
 }

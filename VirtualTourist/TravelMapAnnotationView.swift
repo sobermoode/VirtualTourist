@@ -14,6 +14,9 @@ class TravelMapAnnotationView: MKPinAnnotationView
     // this keeps track of the Pin on the map view
     var pinNumber: Int!
     
+    // this prevents errors when reusing annotations
+    static var reuseMe: Bool = false
+    
     override init!(
         annotation: MKAnnotation!,
         reuseIdentifier: String!
@@ -35,5 +38,16 @@ class TravelMapAnnotationView: MKPinAnnotationView
     override init( frame: CGRect )
     {
         super.init( frame: frame )
+    }
+    
+    // tells the TravelMapViewController not to throw an error when looking for a cell to reuse
+    override func prepareForReuse()
+    {
+        TravelMapAnnotationView.reuseMe = true
+    }
+    
+    class func resetReuseFlag()
+    {
+        TravelMapAnnotationView.reuseMe = false
     }
 }

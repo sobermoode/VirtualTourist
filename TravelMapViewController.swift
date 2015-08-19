@@ -140,6 +140,7 @@ class TravelMapViewController: UIViewController,
         viewForAnnotation annotation: MKAnnotation!
     ) -> MKAnnotationView!
     {
+        // get an annotation to reuse, if available
         if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
         {
             if let theAnnotation = Pin.getAnnotationForPinNumber( newAnnotationView.pinNumber )
@@ -149,9 +150,14 @@ class TravelMapViewController: UIViewController,
             }
             else
             {
-                println( "There was an error with the Pin." )
+                // but don't throw an error if it was marked for reuse
+                if !TravelMapAnnotationView.reuseMe
+                {
+                    println( "There was an error with the Pin." )
+                }
             }
         }
+        // otherwise, create a new annotation
         else
         {
             let newAnnotationView = TravelMapAnnotationView(
@@ -162,7 +168,11 @@ class TravelMapViewController: UIViewController,
             return newAnnotationView
         }
         
-        return TravelMapAnnotationView(annotation: annotation, reuseIdentifier: "mapPin")
+        // backup annotation to use
+        return TravelMapAnnotationView(
+            annotation: annotation,
+            reuseIdentifier: "mapPin"
+        )
     }
     
     func mapView(

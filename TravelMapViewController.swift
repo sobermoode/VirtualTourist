@@ -27,19 +27,37 @@ class TravelMapViewController: UIViewController,
             longitudeDelta: 3.0
         )
     )
+    var savedRegion: MKCoordinateRegion? = nil
+    // var savedMapInfo: [ String : CLLocationDegrees ]? = nil
     
     // flag to know what action to take when an annotation in selected;
     // if editing pins, delete selected pin,
     // otherwise, segue to the selected pin's photo album
+    // TODO: 3 pinch-and-zoom gestures break edit mode. need to disable them in edit mode.
     var inEditMode: Bool = false
     
+    /*
+    UNECESSARY
     // for use with identifying selected pins
     var totalPinsOnMap: Int = 0
     var pinIDForAnnotation = [ MKPointAnnotation : Int ]()
+    */
     
     override func viewWillAppear( animated: Bool )
     {
-        // TODO: 1-1 get the map's region from NSUserDefaults
+        println( "viewWillAppear..." )
+        if savedRegion != nil
+        {
+            println( "using the saved region..." )
+            mapView.region = savedRegion!
+            mapView.setCenterCoordinate( savedRegion!.center, animated: true )
+        }
+        else
+        {
+            println( "using the default region..." )
+            mapView.region = defaultRegion
+        }
+        
         // TODO: 2-1 execute the Pin fetch request from Core Data
         
         // set the map's delegate
@@ -48,11 +66,33 @@ class TravelMapViewController: UIViewController,
     
     override func viewDidLoad()
     {
+        println( "viewDidLoad..." )
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
         
-        // TODO: 1-2 set the map's region, from step 1-1
+        if let mapInfo = NSUserDefaults.standardUserDefaults().dictionaryForKey( "mapInfo" ) as? [ String : CLLocationDegrees ]
+        {
+            println( "map info exists: \( mapInfo )" )
+            let centerLatitude = mapInfo[ "centerLatitude" ]!
+            let centerLongitude = mapInfo[ "centerLongitude" ]!
+            let spanLatDelta = mapInfo[ "spanLatitudeDelta" ]!
+            let spanLongDelta = mapInfo[ "spanLongitudeDelta" ]!
+            
+            let newMapRegion = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(
+                    latitude: centerLatitude,
+                    longitude: centerLongitude
+                ),
+                span: MKCoordinateSpan(
+                    latitudeDelta: spanLatDelta,
+                    longitudeDelta: spanLongDelta
+                )
+            )
+            
+            savedRegion = newMapRegion
+        }
+        
         // TODO: 2-2 add all the pins, from step 2-1
         
         // add the initial action to the editPinsButton
@@ -64,12 +104,6 @@ class TravelMapViewController: UIViewController,
             action: "dropPin:"
         )
         self.view.addGestureRecognizer( pinDropper )
-        
-        // TODO: 3 get the map region from NSUserDefaults
-        
-        // set the map region
-        // TODO: 4 add this as an else clause to getting the region from NSUserDefaults
-        mapView.region = defaultRegion
     }
     
     func editPins( sender: UIBarButtonItem )
@@ -195,9 +229,24 @@ class TravelMapViewController: UIViewController,
         }
     }
     
-    /*
-    func mapView(mapView: MKMapView!, regionDidChangeAnimated animated: Bool) {
-        // code
+    func mapView(
+        mapView: MKMapView!,
+        regionDidChangeAnimated animated: Bool
+    )
+    {
+        let mapRegionCenterLatitude: CLLocationDegrees = mapView.region.center.latitude
+        let mapRegionCenterLongitude: CLLocationDegrees = mapView.region.center.longitude
+        let mapRegionSpanLatitudeDelta: CLLocationDegrees = mapView.region.span.latitudeDelta
+        let mapRegionSpanLongitudeDelta: CLLocationDegrees = mapView.region.span.longitudeDelta
+        
+        // println( "map span: \( mapView.region.span.latitudeDelta ), \( mapView.region.span.longitudeDelta )" )
+        
+        var mapDictionary = [ String : CLLocationDegrees ]()
+        mapDictionary.updateValue( mapRegionCenterLatitude, forKey: "centerLatitude" )
+        mapDictionary.updateValue( mapRegionCenterLongitude, forKey: "centerLongitude" )
+        mapDictionary.updateValue( mapRegionSpanLatitudeDelta, forKey: "spanLatitudeDelta" )
+        mapDictionary.updateValue( mapRegionSpanLongitudeDelta, forKey: "spanLongitudeDelta" )
+        
+        NSUserDefaults.standardUserDefaults().setObject( mapDictionary, forKey: "mapInfo" )
     }
-    */
 }

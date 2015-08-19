@@ -16,7 +16,8 @@ class TravelMapViewController: UIViewController,
     @IBOutlet weak var editPinsButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
     
-    // default map region if none exists in the NSUserDefaults
+    // default map region if none exists in the NSUserDefaults;
+    // the saved map info
     let defaultRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
             latitude: 33.862237,
@@ -27,19 +28,31 @@ class TravelMapViewController: UIViewController,
             longitudeDelta: 3.0
         )
     )
+    var savedRegion: MKCoordinateRegion? = nil
     
     // flag to know what action to take when an annotation in selected;
     // if editing pins, delete selected pin,
     // otherwise, segue to the selected pin's photo album
+    // TODO: 3 pinch-and-zoom gestures break edit mode. need to disable them in edit mode.
     var inEditMode: Bool = false
     
-    // for use with identifying selected pins
-    var totalPinsOnMap: Int = 0
-    var pinIDForAnnotation = [ MKPointAnnotation : Int ]()
+    // MARK: Set-up functions
     
     override func viewWillAppear( animated: Bool )
     {
-        // TODO: 1-1 get the map's region from NSUserDefaults
+        if savedRegion != nil
+        {
+            mapView.region = savedRegion!
+            mapView.setCenterCoordinate(
+                savedRegion!.center,
+                animated: true
+            )
+        }
+        else
+        {
+            mapView.region = defaultRegion
+        }
+        
         // TODO: 2-1 execute the Pin fetch request from Core Data
         
         // set the map's delegate
@@ -52,7 +65,28 @@ class TravelMapViewController: UIViewController,
 
         // Do any additional setup after loading the view.
         
-        // TODO: 1-2 set the map's region, from step 1-1
+        // check for saved map info
+        if let mapInfo = NSUserDefaults.standardUserDefaults().dictionaryForKey( "mapInfo" ) as? [ String : CLLocationDegrees ]
+        {
+            let centerLatitude = mapInfo[ "centerLatitude" ]!
+            let centerLongitude = mapInfo[ "centerLongitude" ]!
+            let spanLatDelta = mapInfo[ "spanLatitudeDelta" ]!
+            let spanLongDelta = mapInfo[ "spanLongitudeDelta" ]!
+            
+            let newMapRegion = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(
+                    latitude: centerLatitude,
+                    longitude: centerLongitude
+                ),
+                span: MKCoordinateSpan(
+                    latitudeDelta: spanLatDelta,
+                    longitudeDelta: spanLongDelta
+                )
+            )
+            
+            savedRegion = newMapRegion
+        }
+        
         // TODO: 2-2 add all the pins, from step 2-1
         
         // add the initial action to the editPinsButton
@@ -64,13 +98,9 @@ class TravelMapViewController: UIViewController,
             action: "dropPin:"
         )
         self.view.addGestureRecognizer( pinDropper )
-        
-        // TODO: 3 get the map region from NSUserDefaults
-        
-        // set the map region
-        // TODO: 4 add this as an else clause to getting the region from NSUserDefaults
-        mapView.region = defaultRegion
     }
+    
+    // MARK: Button functions
     
     func editPins( sender: UIBarButtonItem )
     {
@@ -120,7 +150,8 @@ class TravelMapViewController: UIViewController,
                 let newPin = Pin( coordinate: mapCoordinate )
                 
                 // add the annotation to the map
-                mapView.addAnnotation( newPin.mapPinView.annotation )
+                // mapView.addAnnotation( newPin.mapPinView.annotation )
+                mapView.addAnnotation( Pin.getAnnotationForPinNumber( newPin.pinNumber ) )
             
                 return
             
@@ -180,6 +211,7 @@ class TravelMapViewController: UIViewController,
         didSelectAnnotationView view: MKAnnotationView!
     )
     {
+        // get the selected pin
         let selectedPin = view as! TravelMapAnnotationView
         
         if !inEditMode
@@ -195,9 +227,25 @@ class TravelMapViewController: UIViewController,
         }
     }
     
-    /*
-    func mapView(mapView: MKMapView!, regionDidChangeAnimated animated: Bool) {
-        // code
+    func mapView(
+        mapView: MKMapView!,
+        regionDidChangeAnimated animated: Bool
+    )
+    {
+        // record the map region info
+        let mapRegionCenterLatitude: CLLocationDegrees = mapView.region.center.latitude
+        let mapRegionCenterLongitude: CLLocationDegrees = mapView.region.center.longitude
+        let mapRegionSpanLatitudeDelta: CLLocationDegrees = mapView.region.span.latitudeDelta
+        let mapRegionSpanLongitudeDelta: CLLocationDegrees = mapView.region.span.longitudeDelta
+        
+        // create a dictionary to store in the user defaults
+        var mapDictionary = [ String : CLLocationDegrees ]()
+        mapDictionary.updateValue( mapRegionCenterLatitude, forKey: "centerLatitude" )
+        mapDictionary.updateValue( mapRegionCenterLongitude, forKey: "centerLongitude" )
+        mapDictionary.updateValue( mapRegionSpanLatitudeDelta, forKey: "spanLatitudeDelta" )
+        mapDictionary.updateValue( mapRegionSpanLongitudeDelta, forKey: "spanLongitudeDelta" )
+        
+        // save to NSUserDefaults
+        NSUserDefaults.standardUserDefaults().setObject( mapDictionary, forKey: "mapInfo" )
     }
-    */
 }

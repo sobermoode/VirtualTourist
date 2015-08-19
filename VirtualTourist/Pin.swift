@@ -13,7 +13,7 @@ class Pin: NSObject
 {
     // class properties
     static var droppedPins = [ Int : Pin ]()
-    static var totalPins: Int = 0 // its possible i dont need this anymore, either
+    // static var totalPins: Int = 0 // its possible i dont need this anymore, either
     static var currentPinNumber: Int = 0
     
     // instance properties
@@ -33,9 +33,6 @@ class Pin: NSObject
     
     init( coordinate: CLLocationCoordinate2D )
     {
-        // update the total number of pins on the map
-        // ++Pin.totalPins
-        
         // update the current pin number
         ++Pin.currentPinNumber
         
@@ -68,9 +65,6 @@ class Pin: NSObject
         {
             TravelMapAnnotationView.resetReuseFlag()
         }
-        
-        // update the total number of pins on the map
-        // --Pin.totalPins
     }
     
     class func getCurrentPinNumber() -> Int
@@ -78,6 +72,7 @@ class Pin: NSObject
         return Pin.currentPinNumber
     }
     
+    // this allows the map view in the TravelMapViewController to remove its annotations
     class func getAnnotationForPinNumber( pinNumber: Int ) -> MKAnnotation?
     {
         if let thePin = Pin.droppedPins[ pinNumber ]

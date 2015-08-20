@@ -43,6 +43,9 @@ class PhotoAlbumViewController: UIViewController,
             action: "newCollection",
             forControlEvents: .TouchUpInside
         )
+        
+        // hide the label, unless it is needed
+        noImagesLabel.hidden  = true
     }
     
     // MARK: Set-up functions

@@ -201,15 +201,6 @@
                                     </mask>
                                 </variation>
                             </navigationBar>
-                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No images were found for that location 😓" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Oqx-CB-Udp">
-                                <rect key="frame" x="0.0" y="-21" width="42" height="21"/>
-                                <fontDescription key="fontDescription" name="AppleSDGothicNeo-Regular" family="Apple SD Gothic Neo" pointSize="17"/>
-                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                                <nil key="highlightedColor"/>
-                                <variation key="widthClass=compact" fixedFrame="YES">
-                                    <rect key="frame" x="43" y="174" width="315" height="64"/>
-                                </variation>
-                            </label>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="cvd-pT-EqP">
                                 <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
                                 <constraints>
@@ -353,14 +344,40 @@
                                     </mask>
                                 </variation>
                             </collectionView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Oqx-CB-Udp">
+                                <rect key="frame" x="0.0" y="-21" width="42" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="315" id="pGn-Nj-zXQ"/>
+                                    <constraint firstAttribute="height" constant="64" id="uQB-uR-SSe"/>
+                                </constraints>
+                                <string key="text">No photos were found
+for this location 😓</string>
+                                <fontDescription key="fontDescription" name="AppleSDGothicNeo-Regular" family="Apple SD Gothic Neo" pointSize="17"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="pGn-Nj-zXQ"/>
+                                        <exclude reference="uQB-uR-SSe"/>
+                                    </mask>
+                                </variation>
+                                <variation key="widthClass=compact">
+                                    <mask key="constraints">
+                                        <include reference="pGn-Nj-zXQ"/>
+                                        <include reference="uQB-uR-SSe"/>
+                                    </mask>
+                                </variation>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="cvd-pT-EqP" secondAttribute="trailing" id="8JG-Up-gIl">
                                 <variation key="widthClass=compact" constant="-16"/>
                             </constraint>
+                            <constraint firstItem="rcR-EL-00K" firstAttribute="top" secondItem="Oqx-CB-Udp" secondAttribute="bottom" constant="236" id="FVa-Ls-Vlj"/>
                             <constraint firstItem="Sxh-kA-qiR" firstAttribute="top" secondItem="Tra-jY-w2l" secondAttribute="topMargin" id="Fsx-ul-QMo"/>
                             <constraint firstItem="eDO-k5-2XE" firstAttribute="top" secondItem="cvd-pT-EqP" secondAttribute="bottom" id="HuC-ft-qXj"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Oqx-CB-Udp" secondAttribute="trailing" constant="26" id="NJM-Zj-KOO"/>
                             <constraint firstItem="eDO-k5-2XE" firstAttribute="leading" secondItem="Tra-jY-w2l" secondAttribute="leadingMargin" id="OeE-VL-Ybq">
                                 <variation key="widthClass=compact" constant="-16"/>
                             </constraint>
@@ -380,7 +397,9 @@
                             <constraint firstItem="rcR-EL-00K" firstAttribute="leading" secondItem="Tra-jY-w2l" secondAttribute="leadingMargin" id="Z4v-Ng-Bwj">
                                 <variation key="widthClass=compact" constant="-16"/>
                             </constraint>
+                            <constraint firstItem="Oqx-CB-Udp" firstAttribute="top" secondItem="cvd-pT-EqP" secondAttribute="bottom" constant="59" id="dcR-ho-HBz"/>
                             <constraint firstItem="rcR-EL-00K" firstAttribute="top" secondItem="eDO-k5-2XE" secondAttribute="bottom" id="lYL-T3-RQR"/>
+                            <constraint firstItem="Oqx-CB-Udp" firstAttribute="leading" secondItem="Tra-jY-w2l" secondAttribute="leadingMargin" constant="27" id="m7M-bh-1i3"/>
                             <constraint firstItem="lfI-6N-svv" firstAttribute="top" secondItem="rcR-EL-00K" secondAttribute="bottom" id="uQF-At-9Y1"/>
                             <constraint firstAttribute="trailingMargin" secondItem="rcR-EL-00K" secondAttribute="trailing" id="vho-Cz-7eB">
                                 <variation key="widthClass=compact" constant="-16"/>
@@ -389,16 +408,12 @@
                         <variation key="default">
                             <mask key="subviews">
                                 <exclude reference="Sxh-kA-qiR"/>
-                                <exclude reference="Oqx-CB-Udp"/>
                                 <exclude reference="cvd-pT-EqP"/>
                                 <exclude reference="rcR-EL-00K"/>
                                 <exclude reference="eDO-k5-2XE"/>
+                                <exclude reference="Oqx-CB-Udp"/>
                             </mask>
                             <mask key="constraints">
-                                <exclude reference="uQF-At-9Y1"/>
-                                <exclude reference="Z4v-Ng-Bwj"/>
-                                <exclude reference="lYL-T3-RQR"/>
-                                <exclude reference="vho-Cz-7eB"/>
                                 <exclude reference="Fsx-ul-QMo"/>
                                 <exclude reference="WUq-nJ-XHU"/>
                                 <exclude reference="Y4o-rw-ldn"/>
@@ -408,21 +423,25 @@
                                 <exclude reference="HuC-ft-qXj"/>
                                 <exclude reference="OeE-VL-Ybq"/>
                                 <exclude reference="PjA-FC-QR1"/>
+                                <exclude reference="NJM-Zj-KOO"/>
+                                <exclude reference="dcR-ho-HBz"/>
+                                <exclude reference="m7M-bh-1i3"/>
+                                <exclude reference="FVa-Ls-Vlj"/>
+                                <exclude reference="Z4v-Ng-Bwj"/>
+                                <exclude reference="lYL-T3-RQR"/>
+                                <exclude reference="vho-Cz-7eB"/>
+                                <exclude reference="uQF-At-9Y1"/>
                             </mask>
                         </variation>
                         <variation key="widthClass=compact">
                             <mask key="subviews">
                                 <include reference="Sxh-kA-qiR"/>
-                                <include reference="Oqx-CB-Udp"/>
                                 <include reference="cvd-pT-EqP"/>
                                 <include reference="rcR-EL-00K"/>
                                 <include reference="eDO-k5-2XE"/>
+                                <include reference="Oqx-CB-Udp"/>
                             </mask>
                             <mask key="constraints">
-                                <include reference="uQF-At-9Y1"/>
-                                <include reference="Z4v-Ng-Bwj"/>
-                                <include reference="lYL-T3-RQR"/>
-                                <include reference="vho-Cz-7eB"/>
                                 <include reference="Fsx-ul-QMo"/>
                                 <include reference="WUq-nJ-XHU"/>
                                 <include reference="Y4o-rw-ldn"/>
@@ -432,6 +451,14 @@
                                 <include reference="HuC-ft-qXj"/>
                                 <include reference="OeE-VL-Ybq"/>
                                 <include reference="PjA-FC-QR1"/>
+                                <include reference="NJM-Zj-KOO"/>
+                                <include reference="dcR-ho-HBz"/>
+                                <include reference="m7M-bh-1i3"/>
+                                <include reference="FVa-Ls-Vlj"/>
+                                <include reference="Z4v-Ng-Bwj"/>
+                                <include reference="lYL-T3-RQR"/>
+                                <include reference="vho-Cz-7eB"/>
+                                <include reference="uQF-At-9Y1"/>
                             </mask>
                         </variation>
                     </view>

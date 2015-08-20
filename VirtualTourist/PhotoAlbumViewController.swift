@@ -22,10 +22,15 @@ class PhotoAlbumViewController: UIViewController,
     // the location selected from the travel map
     var location: Pin!
     
-    override func viewDidLoad() {
+    override func viewDidLoad()
+    {
+        println( "PhotoAlbum viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
+        
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        
+        println( "location.pinNumber: \( location.pinNumber )" )
         
         // set up views
         setUpNavBar()
@@ -78,6 +83,9 @@ class PhotoAlbumViewController: UIViewController,
     // return to the map
     func backToMap( sender: UIBarButtonItem )
     {
+        let travelMap = self.presentingViewController as! TravelMapViewController
+        travelMap.returningFromPhotoAlbum = true
+        
         dismissViewControllerAnimated(
             true,
             completion: nil

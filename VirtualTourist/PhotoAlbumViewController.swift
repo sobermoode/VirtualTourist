@@ -185,6 +185,10 @@ class PhotoAlbumViewController: UIViewController,
         cell.frame.size.width = ( collectionView.collectionViewLayout.collectionViewContentSize().width / 3 ) - 10
         cell.frame.size.height = cell.frame.size.width
         
+        // NOTE:
+        // trick taken from https://stackoverflow.com/questions/2638120/can-i-change-the-size-of-uiactivityindicator
+        cell.activityIndicator.transform = CGAffineTransformMakeScale( 1.5, 1.5 )
+        
         return cell
     }
 }

@@ -167,10 +167,10 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
         </scene>
-        <!--Photo Album View Controller3-->
+        <!--Photo Album View Controller-->
         <scene sceneID="aox-gx-pEb">
             <objects>
-                <viewController storyboardIdentifier="PhotoAlbum3" id="dS8-E0-co4" customClass="PhotoAlbumViewController3" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="PhotoAlbum" id="dS8-E0-co4" customClass="PhotoAlbumViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="Ria-qU-QEH"/>
                         <viewControllerLayoutGuide type="bottom" id="lfI-6N-svv"/>
@@ -436,11 +436,11 @@
                         </variation>
                     </view>
                     <connections>
-                        <outlet property="destinationImagesCollection" destination="eDO-k5-2XE" id="vC2-Ep-hwX"/>
-                        <outlet property="destinationMap" destination="cvd-pT-EqP" id="afr-jb-0wr"/>
-                        <outlet property="navBar" destination="Sxh-kA-qiR" id="j5p-gc-DZ5"/>
-                        <outlet property="newCollectionButton" destination="rcR-EL-00K" id="8Of-OO-wd7"/>
-                        <outlet property="noImagesLabel" destination="Oqx-CB-Udp" id="uZE-Gf-eJS"/>
+                        <outlet property="mapView" destination="cvd-pT-EqP" id="mHx-hB-x8T"/>
+                        <outlet property="navBar" destination="Sxh-kA-qiR" id="7iU-d6-z7Y"/>
+                        <outlet property="newCollectionButton" destination="rcR-EL-00K" id="z6P-Yt-VjS"/>
+                        <outlet property="noImagesLabel" destination="Oqx-CB-Udp" id="nrk-oT-Fb9"/>
+                        <outlet property="photoAlbumCollection" destination="eDO-k5-2XE" id="kgZ-l0-hES"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="shz-Yt-Aw3" userLabel="First Responder" sceneMemberID="firstResponder"/>

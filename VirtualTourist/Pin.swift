@@ -55,6 +55,11 @@ class Pin: NSObject
         )
     }
     
+    class func getPin( pinNumber: Int ) -> Pin!
+    {
+        return Pin.droppedPins[ pinNumber ]!
+    }
+    
     class func removePin( pinNumber: Int )
     {
         // remove the Pin from the model

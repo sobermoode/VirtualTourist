@@ -35,21 +35,34 @@ class TravelMapViewController: UIViewController,
     // otherwise, segue to the selected pin's photo album
     var inEditMode: Bool = false
     
+    // this is set from the PhotoAlbumViewController to let this controller
+    // know not to put the map back at the saved region
+    var returningFromPhotoAlbum: Bool = false
+    
     // MARK: Set-up functions
     
     override func viewWillAppear( animated: Bool )
     {
-        if savedRegion != nil
+        println( "TravelMap viewWillAppear: There are \( Pin.getCurrentPinNumber() ) pins." )
+        
+        if !returningFromPhotoAlbum
         {
-            mapView.region = savedRegion!
-            mapView.setCenterCoordinate(
-                savedRegion!.center,
-                animated: true
-            )
+            if savedRegion != nil
+            {
+                mapView.region = savedRegion!
+                mapView.setCenterCoordinate(
+                    savedRegion!.center,
+                    animated: true
+                )
+            }
+            else
+            {
+                mapView.region = defaultRegion
+            }
         }
         else
         {
-            mapView.region = defaultRegion
+            returningFromPhotoAlbum = false
         }
         
         // TODO: 2-1 execute the Pin fetch request from Core Data
@@ -60,6 +73,8 @@ class TravelMapViewController: UIViewController,
     
     override func viewDidLoad()
     {
+        println( "TravelMap viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
+        
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
@@ -151,6 +166,7 @@ class TravelMapViewController: UIViewController,
                     toCoordinateFromView: self.view
                 )
                 
+                // create a Pin
                 let newPin = Pin( coordinate: mapCoordinate )
                 
                 // add the annotation to the map
@@ -217,15 +233,26 @@ class TravelMapViewController: UIViewController,
         didSelectAnnotationView view: MKAnnotationView!
     )
     {
-        // get the selected pin
-        let selectedPin = view as! TravelMapAnnotationView
-        
         if !inEditMode
         {
+            // get the coordinate to pass to the PhotoAlbumViewController
+            let theCoordinate = view.annotation.coordinate
+            
             // segue to the photo album
+            let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
+            photoAlbum.location = theCoordinate
+            
+            presentViewController(
+                photoAlbum,
+                animated: true,
+                completion: nil
+            )
         }
         else
         {
+            // get the selected pin
+            let selectedPin = view as! TravelMapAnnotationView
+            
             // remove the selected pin from the map,
             // remove the Pin from the model
             mapView.removeAnnotation( selectedPin.annotation )

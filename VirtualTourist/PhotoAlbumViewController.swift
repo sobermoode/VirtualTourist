@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 
 class PhotoAlbumViewController: UIViewController,
-    MKMapViewDelegate
+    MKMapViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate
 {
     // outlets
     @IBOutlet weak var navBar: UINavigationBar!
@@ -44,6 +44,11 @@ class PhotoAlbumViewController: UIViewController,
             forControlEvents: .TouchUpInside
         )
         
+        // set the collection view properties
+        photoAlbumCollection.allowsMultipleSelection = true
+        photoAlbumCollection.dataSource = self
+        photoAlbumCollection.delegate = self
+        
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
     }
@@ -68,16 +73,29 @@ class PhotoAlbumViewController: UIViewController,
     
     func setUpMap()
     {
-        mapView.region = MKCoordinateRegion(
-            center: location,
+        let defaultRegion = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: 33.862237,
+                longitude: -118.399519
+            ),
             span: MKCoordinateSpan(
-                latitudeDelta: 0.1,
-                longitudeDelta: 0.1
+                latitudeDelta: 3.0,
+                longitudeDelta: 3.0
             )
         )
         
-        let locationAnnotation = MKPointAnnotation()
-        locationAnnotation.coordinate = location
+        mapView.region = defaultRegion
+        
+//        mapView.region = MKCoordinateRegion(
+//            center: location,
+//            span: MKCoordinateSpan(
+//                latitudeDelta: 0.1,
+//                longitudeDelta: 0.1
+//            )
+//        )
+        
+//        let locationAnnotation = MKPointAnnotation()
+//        locationAnnotation.coordinate = location
         
         // mapView.addAnnotation( Pin.getAnnotationForPinNumber( location.pinNumber ) )
     }
@@ -137,21 +155,36 @@ class PhotoAlbumViewController: UIViewController,
             reuseIdentifier: "mapPin"
         )
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    // MARK: UICollectionViewDataSource, UICollectionViewDelegate functions
+    
+    func numberOfSectionsInCollectionView( collectionView: UICollectionView ) -> Int
+    {
+        return 1
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    func collectionView(
+        collectionView: UICollectionView,
+        numberOfItemsInSection section: Int
+    ) -> Int
+    {
+        return 30
     }
-    */
-
+    
+    func collectionView(
+        collectionView: UICollectionView,
+        cellForItemAtIndexPath indexPath: NSIndexPath
+    ) -> UICollectionViewCell
+    {
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
+            "photoAlbumCell",
+            forIndexPath: indexPath
+        ) as! PhotoAlbumCell
+        
+        // set the cell dimensions
+        cell.frame.size.width = ( collectionView.collectionViewLayout.collectionViewContentSize().width / 3 ) - 10
+        cell.frame.size.height = cell.frame.size.width
+        
+        return cell
+    }
 }

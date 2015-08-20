@@ -166,6 +166,7 @@ class TravelMapViewController: UIViewController,
                     toCoordinateFromView: self.view
                 )
                 
+                // create a Pin
                 let newPin = Pin( coordinate: mapCoordinate )
                 
                 // add the annotation to the map
@@ -232,34 +233,26 @@ class TravelMapViewController: UIViewController,
         didSelectAnnotationView view: MKAnnotationView!
     )
     {
-        // get the selected pin
-        let selectedPin = view as! TravelMapAnnotationView
-        
-        println( "selectedPin.pinNumber: \( selectedPin.pinNumber )" )
-        println( "Pin.pinNumber: \( Pin.getPin( selectedPin.pinNumber ).pinNumber )" )
-        
         if !inEditMode
         {
+            // get the coordinate to pass to the PhotoAlbumViewController
+            let theCoordinate = view.annotation.coordinate
+            
             // segue to the photo album
             let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
+            photoAlbum.location = theCoordinate
             
-            if let location = Pin.getPin( selectedPin.pinNumber )
-            {
-                photoAlbum.location = location
-                
-                presentViewController(
-                    photoAlbum,
-                    animated: true,
-                    completion: nil
-                )
-            }
-            else
-            {
-                println( "There was a problem finding that location." )
-            }
+            presentViewController(
+                photoAlbum,
+                animated: true,
+                completion: nil
+            )
         }
         else
         {
+            // get the selected pin
+            let selectedPin = view as! TravelMapAnnotationView
+            
             // remove the selected pin from the map,
             // remove the Pin from the model
             mapView.removeAnnotation( selectedPin.annotation )

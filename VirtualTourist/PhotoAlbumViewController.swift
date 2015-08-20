@@ -20,7 +20,8 @@ class PhotoAlbumViewController: UIViewController,
     @IBOutlet weak var photoAlbumCollection: UICollectionView!
     
     // the location selected from the travel map
-    var location: Pin!
+    // var location: Pin!
+    var location: CLLocationCoordinate2D!
     
     override func viewDidLoad()
     {
@@ -30,7 +31,7 @@ class PhotoAlbumViewController: UIViewController,
 
         // Do any additional setup after loading the view.
         
-        println( "location.pinNumber: \( location.pinNumber )" )
+        // println( "location.pinNumber: \( location.pinNumber )" )
         
         // set up views
         setUpNavBar()
@@ -65,17 +66,17 @@ class PhotoAlbumViewController: UIViewController,
     func setUpMap()
     {
         mapView.region = MKCoordinateRegion(
-            center: location.coordinate,
+            center: location,
             span: MKCoordinateSpan(
                 latitudeDelta: 0.1,
                 longitudeDelta: 0.1
             )
         )
         
-//        let locationAnnotation = MKPointAnnotation()
-//        destinationAnnotation.coordinate = destination.coordinate
+        let locationAnnotation = MKPointAnnotation()
+        locationAnnotation.coordinate = location
         
-        mapView.addAnnotation( Pin.getAnnotationForPinNumber( location.pinNumber ) )
+        // mapView.addAnnotation( Pin.getAnnotationForPinNumber( location.pinNumber ) )
     }
     
     // MARK: Button functions

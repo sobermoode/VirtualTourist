@@ -62,7 +62,7 @@ class FlickrClient: NSObject
     
     func requestResultsForLocation(
         location: CLLocationCoordinate2D,
-        completionHandler: ( ( requestError: NSError! ) -> Void )
+        completionHandler: ( photoResults: [[ String : AnyObject ]]?, requestError: NSError! ) -> Void
     )
     {
         println( "requestResultsForDestination..." )
@@ -74,7 +74,7 @@ class FlickrClient: NSObject
             
             if requestError != nil
             {
-                return completionHandler( requestError: requestError )
+                return completionHandler( photoResults: nil, requestError: requestError )
             }
             else
             {
@@ -85,7 +85,7 @@ class FlickrClient: NSObject
                     error: jsonificationError
                     ) as? [ String : AnyObject ]
                 {
-                    println( "Parsing results from Flickr..." )
+                    // println( "Parsing results from Flickr..." )
                     // println( "requestResults: \( requestResults )" )
                     let photos = requestResults[ "photos" ] as! [ String : AnyObject ]
                     let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
@@ -101,15 +101,9 @@ class FlickrClient: NSObject
                         // returnImages.append( photoArray[ index ] )
                     }
                     // self.albumForDestinationID.updateValue( albumPhotos, forKey: self.destination.pinNumber )
-                    println( "photoResults: \( photoResults )" )
+                    // println( "photoResults: \( photoResults )" )
                     
-                    dispatch_async( dispatch_get_main_queue() )
-                        {
-                            self.albumPhotos = photoResults
-                    }
-                    
-                    
-                    return completionHandler( requestError: nil )
+                    return completionHandler( photoResults: photoResults, requestError: nil )
                 }
                 else
                 {
@@ -119,7 +113,7 @@ class FlickrClient: NSObject
                         code: 2112,
                         userInfo: errorDictionary
                     )
-                    return completionHandler( requestError: requestError )
+                    return completionHandler( photoResults: nil, requestError: requestError )
                 }
             }
         }

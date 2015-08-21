@@ -59,15 +59,24 @@ class PhotoAlbumViewController: UIViewController,
         
         FlickrClient.sharedInstance().requestResultsForLocation( location )
         {
-            requestError in
+            photoResults, requestError in
             
             if requestError != nil
             {
                 println( "There was a problem requesting the photos from Flickr: \( requestError )" )
             }
+            else
+            {
+                self.photoResults = photoResults
+                
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    self.photoAlbumCollection.reloadData()
+                }
+            }
         }
         
-        println( FlickrClient.sharedInstance().getPhotoResults() )
+        // println( FlickrClient.sharedInstance().getPhotoResults() )
     }
     
     // MARK: Set-up functions
@@ -190,6 +199,11 @@ class PhotoAlbumViewController: UIViewController,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
+        if self.photoResults != nil
+        {
+            println( "Getting URL \( self.photoResults![ indexPath.item ] )" )
+        }
+        
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
             "photoAlbumCell",
             forIndexPath: indexPath

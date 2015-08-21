@@ -26,7 +26,7 @@ class PhotoAlbumViewController: UIViewController,
         longitude: -118.399519
     )
     
-    var photoResults: [[ String : AnyObject ]]?
+    var photoResults: [[ String : AnyObject ]?] = [[ String : AnyObject ]?]()
     
     override func viewDidLoad()
     {
@@ -69,10 +69,10 @@ class PhotoAlbumViewController: UIViewController,
             {
                 self.photoResults = photoResults
                 
-                dispatch_async( dispatch_get_main_queue() )
-                {
-                    self.photoAlbumCollection.reloadData()
-                }
+//                dispatch_async( dispatch_get_main_queue() )
+//                {
+//                    self.photoAlbumCollection.reloadData()
+//                }
             }
         }
         
@@ -199,11 +199,11 @@ class PhotoAlbumViewController: UIViewController,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
-        if self.photoResults != nil
-        {
-            println( "Getting URL \( self.photoResults![ indexPath.item ] )" )
-        }
-        
+//        if self.photoResults != nil
+//        {
+//            println( "Getting URL \( self.photoResults![ indexPath.item ] )" )
+//        }
+
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
             "photoAlbumCell",
             forIndexPath: indexPath
@@ -216,6 +216,39 @@ class PhotoAlbumViewController: UIViewController,
         // NOTE:
         // trick taken from https://stackoverflow.com/questions/2638120/can-i-change-the-size-of-uiactivityindicator
         cell.activityIndicator.transform = CGAffineTransformMakeScale( 1.5, 1.5 )
+        
+        // var imageTask = NSURLSessionDataTask
+        println( "indexPath.item: \( indexPath.item )" )
+        if photoResults.count != 0
+        {
+            if let imageInfo = photoResults[ indexPath.item ]
+            {
+                if cell.imageTask != nil
+                {
+                    return cell
+                }
+                else
+                {
+                    let imageTask = FlickrClient.sharedInstance().taskForImage( imageInfo )
+                    {
+                        imageData, imageError in
+                        
+                        if imageError != nil
+                        {
+                            println( "There was an error retrieving the image from Flickr: \( imageError )" )
+                        }
+                        else
+                        {
+                            cell.photoImageView.image = UIImage( data: imageData! )
+                        }
+                    }
+                    
+                    cell.imageTask = imageTask
+                    
+                    return cell
+                }
+            }
+        }
         
         return cell
     }

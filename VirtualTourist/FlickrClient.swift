@@ -62,10 +62,12 @@ class FlickrClient: NSObject
     
     func requestResultsForLocation(
         location: CLLocationCoordinate2D,
-        completionHandler: ( photoResults: [[ String : AnyObject ]]?, requestError: NSError! ) -> Void
+        completionHandler: ( photoResults: [[ String : AnyObject ]?], requestError: NSError! ) -> Void
     )
     {
         println( "requestResultsForDestination..." )
+        
+        var photoResults = [[ String : AnyObject ]?]()
         
         let requestURL = createQueryURL( location )
         let requestTask = session.dataTaskWithURL( requestURL )
@@ -74,7 +76,7 @@ class FlickrClient: NSObject
             
             if requestError != nil
             {
-                return completionHandler( photoResults: nil, requestError: requestError )
+                return completionHandler( photoResults: photoResults, requestError: requestError )
             }
             else
             {
@@ -90,7 +92,7 @@ class FlickrClient: NSObject
                     let photos = requestResults[ "photos" ] as! [ String : AnyObject ]
                     let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
                     
-                    var photoResults = [[ String : AnyObject ]]()
+                    // var photoResults = [[ String : AnyObject ]?]()
                     var resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count
                     for counter in 0...resultCounter
                     {
@@ -113,11 +115,48 @@ class FlickrClient: NSObject
                         code: 2112,
                         userInfo: errorDictionary
                     )
-                    return completionHandler( photoResults: nil, requestError: requestError )
+                    return completionHandler( photoResults: photoResults, requestError: requestError )
                 }
             }
         }
         requestTask.resume()
+    }
+    
+    func taskForImage(
+        imageInfo: [ String : AnyObject ],
+        completionHandler: ( imageData: NSData?, imageError: NSError? ) -> Void
+    ) -> NSURLSessionDataTask
+    {
+        let farmID = imageInfo[ "farm" ] as! Int
+        let serverID = imageInfo[ "server" ] as! String
+        let photoID = imageInfo[ "id" ] as! String
+        let secret = imageInfo[ "secret" ] as! String
+        
+        let imageURLString = "https://farm\( farmID ).staticflickr.com/\( serverID )/\( photoID )_\( secret ).jpg"
+        let imageURL = NSURL( string: imageURLString )!
+        
+        let imageTask = session.dataTaskWithURL( imageURL )
+        {
+            imageData, imageResponse, imageError in
+            
+            if imageError != nil
+            {
+                return completionHandler(
+                    imageData: nil,
+                    imageError: imageError
+                )
+            }
+            else
+            {
+                return completionHandler(
+                    imageData: imageData,
+                    imageError: nil
+                )
+            }
+        }
+        imageTask.resume()
+        
+        return imageTask
     }
     
     func getPhotoResults() -> [[ String : AnyObject ]]

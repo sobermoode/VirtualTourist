@@ -10,6 +10,10 @@ import UIKit
 
 class PhotoAlbumCell: UICollectionViewCell
 {
+    // outlets
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var photoImageView: UIImageView!
+    
+    // task for retrieving the image from Flickr
+    var imageTask: NSURLSessionDataTask? = nil
 }

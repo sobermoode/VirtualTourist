@@ -21,10 +21,11 @@ class PhotoAlbumViewController: UIViewController,
     
     // the location selected from the travel map
     // var location: Pin!
-    var location = CLLocationCoordinate2D(
-        latitude: 33.862237,
-        longitude: -118.399519
-    )
+//    var location = CLLocationCoordinate2D(
+//        latitude: 33.862237,
+//        longitude: -118.399519
+//    )
+    var location: CLLocationCoordinate2D!
     
     var photoResults: [[ String : AnyObject ]?] = [[ String : AnyObject ]?]()
     
@@ -99,28 +100,28 @@ class PhotoAlbumViewController: UIViewController,
     
     func setUpMap()
     {
-        let defaultRegion = MKCoordinateRegion(
+//        let defaultRegion = MKCoordinateRegion(
+//            center: location,
+//            span: MKCoordinateSpan(
+//                latitudeDelta: 3.0,
+//                longitudeDelta: 3.0
+//            )
+//        )
+//        
+//        mapView.region = defaultRegion
+        
+        mapView.region = MKCoordinateRegion(
             center: location,
             span: MKCoordinateSpan(
-                latitudeDelta: 3.0,
-                longitudeDelta: 3.0
+                latitudeDelta: 0.1,
+                longitudeDelta: 0.1
             )
         )
         
-        mapView.region = defaultRegion
-        
-//        mapView.region = MKCoordinateRegion(
-//            center: location,
-//            span: MKCoordinateSpan(
-//                latitudeDelta: 0.1,
-//                longitudeDelta: 0.1
-//            )
-//        )
-        
 //        let locationAnnotation = MKPointAnnotation()
 //        locationAnnotation.coordinate = location
-        
-        // mapView.addAnnotation( Pin.getAnnotationForPinNumber( location.pinNumber ) )
+//        
+//         mapView.addAnnotation( Pin.getAnnotationForPinNumber( location.pinNumber ) )
     }
     
     // MARK: Button functions

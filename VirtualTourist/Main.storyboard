@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="dS8-E0-co4">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="vXZ-lx-hvc">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
         <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
@@ -408,6 +408,14 @@ for this location 😓</string>
                                 <exclude reference="Oqx-CB-Udp"/>
                             </mask>
                             <mask key="constraints">
+                                <exclude reference="NJM-Zj-KOO"/>
+                                <exclude reference="dcR-ho-HBz"/>
+                                <exclude reference="m7M-bh-1i3"/>
+                                <exclude reference="uQF-At-9Y1"/>
+                                <exclude reference="FVa-Ls-Vlj"/>
+                                <exclude reference="Z4v-Ng-Bwj"/>
+                                <exclude reference="lYL-T3-RQR"/>
+                                <exclude reference="vho-Cz-7eB"/>
                                 <exclude reference="Fsx-ul-QMo"/>
                                 <exclude reference="WUq-nJ-XHU"/>
                                 <exclude reference="Y4o-rw-ldn"/>
@@ -417,14 +425,6 @@ for this location 😓</string>
                                 <exclude reference="HuC-ft-qXj"/>
                                 <exclude reference="OeE-VL-Ybq"/>
                                 <exclude reference="PjA-FC-QR1"/>
-                                <exclude reference="NJM-Zj-KOO"/>
-                                <exclude reference="dcR-ho-HBz"/>
-                                <exclude reference="m7M-bh-1i3"/>
-                                <exclude reference="FVa-Ls-Vlj"/>
-                                <exclude reference="Z4v-Ng-Bwj"/>
-                                <exclude reference="lYL-T3-RQR"/>
-                                <exclude reference="vho-Cz-7eB"/>
-                                <exclude reference="uQF-At-9Y1"/>
                             </mask>
                         </variation>
                         <variation key="widthClass=compact">
@@ -436,6 +436,14 @@ for this location 😓</string>
                                 <include reference="Oqx-CB-Udp"/>
                             </mask>
                             <mask key="constraints">
+                                <include reference="NJM-Zj-KOO"/>
+                                <include reference="dcR-ho-HBz"/>
+                                <include reference="m7M-bh-1i3"/>
+                                <include reference="uQF-At-9Y1"/>
+                                <include reference="FVa-Ls-Vlj"/>
+                                <include reference="Z4v-Ng-Bwj"/>
+                                <include reference="lYL-T3-RQR"/>
+                                <include reference="vho-Cz-7eB"/>
                                 <include reference="Fsx-ul-QMo"/>
                                 <include reference="WUq-nJ-XHU"/>
                                 <include reference="Y4o-rw-ldn"/>
@@ -445,14 +453,6 @@ for this location 😓</string>
                                 <include reference="HuC-ft-qXj"/>
                                 <include reference="OeE-VL-Ybq"/>
                                 <include reference="PjA-FC-QR1"/>
-                                <include reference="NJM-Zj-KOO"/>
-                                <include reference="dcR-ho-HBz"/>
-                                <include reference="m7M-bh-1i3"/>
-                                <include reference="FVa-Ls-Vlj"/>
-                                <include reference="Z4v-Ng-Bwj"/>
-                                <include reference="lYL-T3-RQR"/>
-                                <include reference="vho-Cz-7eB"/>
-                                <include reference="uQF-At-9Y1"/>
                             </mask>
                         </variation>
                     </view>

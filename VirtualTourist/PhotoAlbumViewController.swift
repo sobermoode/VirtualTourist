@@ -21,7 +21,12 @@ class PhotoAlbumViewController: UIViewController,
     
     // the location selected from the travel map
     // var location: Pin!
-    var location: CLLocationCoordinate2D!
+    var location = CLLocationCoordinate2D(
+        latitude: 33.862237,
+        longitude: -118.399519
+    )
+    
+    var photoResults: [[ String : AnyObject ]]?
     
     override func viewDidLoad()
     {
@@ -51,6 +56,18 @@ class PhotoAlbumViewController: UIViewController,
         
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
+        
+        FlickrClient.sharedInstance().requestResultsForLocation( location )
+        {
+            requestError in
+            
+            if requestError != nil
+            {
+                println( "There was a problem requesting the photos from Flickr: \( requestError )" )
+            }
+        }
+        
+        println( FlickrClient.sharedInstance().getPhotoResults() )
     }
     
     // MARK: Set-up functions
@@ -74,10 +91,7 @@ class PhotoAlbumViewController: UIViewController,
     func setUpMap()
     {
         let defaultRegion = MKCoordinateRegion(
-            center: CLLocationCoordinate2D(
-                latitude: 33.862237,
-                longitude: -118.399519
-            ),
+            center: location,
             span: MKCoordinateSpan(
                 latitudeDelta: 3.0,
                 longitudeDelta: 3.0

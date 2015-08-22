@@ -27,7 +27,9 @@ class PhotoAlbumViewController: UIViewController,
 //    )
     var location: CLLocationCoordinate2D!
     
-    var photoResults: [[ String : AnyObject ]?] = [[ String : AnyObject ]?]()
+    var photoResults = [[ String : AnyObject ]?]()
+    
+    var currentAlbum = [ UIImage? ]( count: 30, repeatedValue: nil )
     
     override func viewDidLoad()
     {
@@ -70,10 +72,10 @@ class PhotoAlbumViewController: UIViewController,
             {
                 self.photoResults = photoResults
                 
-//                dispatch_async( dispatch_get_main_queue() )
-//                {
-//                    self.photoAlbumCollection.reloadData()
-//                }
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    self.photoAlbumCollection.reloadData()
+                }
             }
         }
         
@@ -219,13 +221,17 @@ class PhotoAlbumViewController: UIViewController,
         cell.activityIndicator.transform = CGAffineTransformMakeScale( 1.5, 1.5 )
         
         // var imageTask = NSURLSessionDataTask
-        println( "indexPath.item: \( indexPath.item )" )
         if photoResults.count != 0
         {
             if let imageInfo = photoResults[ indexPath.item ]
             {
                 if cell.imageTask != nil
                 {
+                    if let cellImage = self.currentAlbum[ indexPath.item ]
+                    {
+                        cell.photoImageView.image = self.currentAlbum[ indexPath.item ]
+                    }
+                    
                     return cell
                 }
                 else
@@ -241,6 +247,7 @@ class PhotoAlbumViewController: UIViewController,
                         else
                         {
                             cell.photoImageView.image = UIImage( data: imageData! )
+                            self.currentAlbum[ indexPath.item ] = UIImage( data: imageData! )!
                         }
                     }
                     

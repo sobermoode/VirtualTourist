@@ -127,7 +127,9 @@ class TravelMapViewController: UIViewController,
         editPinsButton.title = "Done"
         editPinsButton.action = "doneEditingPins:"
         
-        // disable zooming; this fixes a bug
+        // disable scrolling and zooming; these both caused bugs in edit mode
+        // (not an ideal solution, i know)
+        mapView.scrollEnabled = false
         mapView.zoomEnabled = false
         
         // set the editing flag
@@ -142,6 +144,7 @@ class TravelMapViewController: UIViewController,
         editPinsButton.title = "Edit"
         editPinsButton.action = "editPins:"
         
+        mapView.scrollEnabled = true
         mapView.zoomEnabled = true
         
         inEditMode = false

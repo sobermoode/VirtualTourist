@@ -93,14 +93,18 @@ class FlickrClient: NSObject
                     let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
                     
                     // var photoResults = [[ String : AnyObject ]?]()
-                    var resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count
-                    for counter in 0...resultCounter
+                    println( "photoArray.count: \( photoArray.count )" )
+                    if photoArray.count != 0
                     {
-                        // println( "index: \( index )" )
-                        photoResults.append( photoArray[ counter ] )
-                        // println( "Adding \( photoArray[ index ] )" )
-                        // println( "self.albumPhotos.count: \( self.albumPhotos.count )" )
-                        // returnImages.append( photoArray[ index ] )
+                        var resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count
+                        for counter in 0...resultCounter
+                        {
+                            // println( "index: \( index )" )
+                            photoResults.append( photoArray[ counter ] )
+                            // println( "Adding \( photoArray[ index ] )" )
+                            // println( "self.albumPhotos.count: \( self.albumPhotos.count )" )
+                            // returnImages.append( photoArray[ index ] )
+                        }
                     }
                     // self.albumForDestinationID.updateValue( albumPhotos, forKey: self.destination.pinNumber )
                     // println( "photoResults: \( photoResults )" )

@@ -70,11 +70,18 @@ class PhotoAlbumViewController: UIViewController,
             }
             else
             {
-                self.photoResults = photoResults
-                
-                dispatch_async( dispatch_get_main_queue() )
+                if photoResults.count == 0
                 {
-                    self.photoAlbumCollection.reloadData()
+                    println( "No one took any pictures at that location 😓" )
+                }
+                else
+                {
+                    self.photoResults = photoResults
+                    
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        self.photoAlbumCollection.reloadData()
+                    }
                 }
             }
         }

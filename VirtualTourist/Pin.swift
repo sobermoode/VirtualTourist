@@ -17,7 +17,8 @@ class Pin: NSObject
     static var currentPinNumber: Int = 0
     
     // instance properties
-    var mapPinView: TravelMapAnnotationView
+    var pointAnnotation: MKPointAnnotation
+    var mapPinView: TravelMapAnnotationView!
     // TODO: make sure these computed properties are ever actually needed anywhere in the project
     var pinNumber: Int!
     {
@@ -37,15 +38,17 @@ class Pin: NSObject
         ++Pin.currentPinNumber
         
         // create an annotation
-        let newAnnotation = MKPointAnnotation()
-        newAnnotation.coordinate = coordinate
+        // let newAnnotation = MKPointAnnotation()
+        // newAnnotation.coordinate = coordinate
+        self.pointAnnotation = MKPointAnnotation()
+        self.pointAnnotation.coordinate = coordinate
         
         // create the pin view that will actually appear on the map
-        self.mapPinView = TravelMapAnnotationView(
-            annotation: newAnnotation,
-            reuseIdentifier: "mapPin"
-        )
-        self.mapPinView.pinNumber = Pin.currentPinNumber
+//        self.mapPinView = TravelMapAnnotationView(
+//            annotation: newAnnotation,
+//            reuseIdentifier: "mapPin"
+//        )
+//        self.mapPinView.pinNumber = Pin.currentPinNumber
         
         super.init()
         

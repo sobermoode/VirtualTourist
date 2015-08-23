@@ -39,6 +39,8 @@ class TravelMapViewController: UIViewController,
     // know not to put the map back at the saved region
     var returningFromPhotoAlbum: Bool = false
     
+    var currentPin: Pin?
+    
     // MARK: Set-up functions
     
     override func viewWillAppear( animated: Bool )
@@ -168,10 +170,12 @@ class TravelMapViewController: UIViewController,
                 
                 // create a Pin
                 let newPin = Pin( coordinate: mapCoordinate )
+                currentPin = newPin
                 
                 // add the annotation to the map
                 // mapView.addAnnotation( newPin.mapPinView.annotation )
-                mapView.addAnnotation( Pin.getAnnotationForPinNumber( newPin.pinNumber ) )
+                // mapView.addAnnotation( Pin.getAnnotationForPinNumber( newPin.pinNumber ) )
+                mapView.addAnnotation( newPin.pointAnnotation )
             
                 return
             
@@ -188,6 +192,75 @@ class TravelMapViewController: UIViewController,
     
     // MARK: MKMapViewDelegate functions
     
+    /*
+    the way i've designed my Pin class, i encountered a bug where the coordinates sent to the PhotoAlbumViewController
+    weren't always the coordinates associated with the selected pin on the map. eventually, i deduced that the reason
+    was due to pin numbers (which i'd intended to be used as unique identifiers) being reused along with the annotations.
+    figuring out a solution, to prevent a dequeued annotation from reusing a pin number that was already associated with
+    a pin that was currently on the map, bent my brain. it took me about a day to come up with this:
+    */
+    func mapView(
+        mapView: MKMapView!,
+        viewForAnnotation annotation: MKAnnotation!
+    ) -> MKAnnotationView!
+    {
+        // if there are annotations that have been recycled
+        if TravelMapAnnotationView.reuseMe
+        {
+            // get the total number of dropped pins
+            var totalPins: Int = Pin.currentPinNumber
+            
+            // go through each annotation view waiting to be reused
+            while totalPins-- > 0
+            {
+                var newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as! TravelMapAnnotationView
+                
+                // check for the match
+                if newAnnotationView.pinNumber != currentPin?.pinNumber
+                {
+                    continue
+                }
+                else
+                {
+                    newAnnotationView.annotation = annotation
+                    
+                    return newAnnotationView
+                }
+            }
+        }
+        
+        // if no match is found, create a new annotation view
+        var newAnnotationView = TravelMapAnnotationView(
+            annotation: annotation,
+            reuseIdentifier: "mapPin"
+        )
+        
+        return newAnnotationView
+        
+        /*
+        var newAnnotationView: TravelMapAnnotationView?
+        do
+        {
+            newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
+        }
+        while newAnnotationView!.pinNumber != currentPin!.pinNumber
+        
+        if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
+        {
+            newAnnotationView.annotation = annotation
+            
+            return newAnnotationView
+        }
+        else
+        {
+            let newAnnotationView = TravelMapAnnotationView(annotation: annotation, reuseIdentifier: "mapPin" )
+            newAnnotationView.pinNumber = Pin.currentPinNumber
+            return newAnnotationView
+        }
+        */
+    }
+    
+    /*
     func mapView(
         mapView: MKMapView!,
         viewForAnnotation annotation: MKAnnotation!
@@ -227,6 +300,7 @@ class TravelMapViewController: UIViewController,
             reuseIdentifier: "mapPin"
         )
     }
+    */
     
     func mapView(
         mapView: MKMapView!,

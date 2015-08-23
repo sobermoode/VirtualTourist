@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 
 class PhotoAlbumViewController: UIViewController,
-    MKMapViewDelegate
+    MKMapViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate
 {
     // outlets
     @IBOutlet weak var navBar: UINavigationBar!
@@ -21,7 +21,15 @@ class PhotoAlbumViewController: UIViewController,
     
     // the location selected from the travel map
     // var location: Pin!
+//    var location = CLLocationCoordinate2D(
+//        latitude: 33.862237,
+//        longitude: -118.399519
+//    )
     var location: CLLocationCoordinate2D!
+    
+    var photoResults = [[ String : AnyObject ]?]()
+    
+    var currentAlbum = [ UIImage? ]( count: 30, repeatedValue: nil )
     
     override func viewDidLoad()
     {
@@ -44,8 +52,34 @@ class PhotoAlbumViewController: UIViewController,
             forControlEvents: .TouchUpInside
         )
         
+        // set the collection view properties
+        photoAlbumCollection.allowsMultipleSelection = true
+        photoAlbumCollection.dataSource = self
+        photoAlbumCollection.delegate = self
+        
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
+        
+        FlickrClient.sharedInstance().requestResultsForLocation( location )
+        {
+            photoResults, requestError in
+            
+            if requestError != nil
+            {
+                println( "There was a problem requesting the photos from Flickr: \( requestError )" )
+            }
+            else
+            {
+                self.photoResults = photoResults
+                
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    self.photoAlbumCollection.reloadData()
+                }
+            }
+        }
+        
+        // println( FlickrClient.sharedInstance().getPhotoResults() )
     }
     
     // MARK: Set-up functions
@@ -68,6 +102,16 @@ class PhotoAlbumViewController: UIViewController,
     
     func setUpMap()
     {
+//        let defaultRegion = MKCoordinateRegion(
+//            center: location,
+//            span: MKCoordinateSpan(
+//                latitudeDelta: 3.0,
+//                longitudeDelta: 3.0
+//            )
+//        )
+//        
+//        mapView.region = defaultRegion
+        
         mapView.region = MKCoordinateRegion(
             center: location,
             span: MKCoordinateSpan(
@@ -76,10 +120,10 @@ class PhotoAlbumViewController: UIViewController,
             )
         )
         
-        let locationAnnotation = MKPointAnnotation()
-        locationAnnotation.coordinate = location
-        
-        // mapView.addAnnotation( Pin.getAnnotationForPinNumber( location.pinNumber ) )
+//        let locationAnnotation = MKPointAnnotation()
+//        locationAnnotation.coordinate = location
+//        
+//         mapView.addAnnotation( Pin.getAnnotationForPinNumber( location.pinNumber ) )
     }
     
     // MARK: Button functions
@@ -137,21 +181,83 @@ class PhotoAlbumViewController: UIViewController,
             reuseIdentifier: "mapPin"
         )
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    // MARK: UICollectionViewDataSource, UICollectionViewDelegate functions
+    
+    func numberOfSectionsInCollectionView( collectionView: UICollectionView ) -> Int
+    {
+        return 1
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    func collectionView(
+        collectionView: UICollectionView,
+        numberOfItemsInSection section: Int
+    ) -> Int
+    {
+        return 30
     }
-    */
+    
+    func collectionView(
+        collectionView: UICollectionView,
+        cellForItemAtIndexPath indexPath: NSIndexPath
+    ) -> UICollectionViewCell
+    {
+//        if self.photoResults != nil
+//        {
+//            println( "Getting URL \( self.photoResults![ indexPath.item ] )" )
+//        }
 
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
+            "photoAlbumCell",
+            forIndexPath: indexPath
+        ) as! PhotoAlbumCell
+        
+        // set the cell dimensions
+        cell.frame.size.width = ( collectionView.collectionViewLayout.collectionViewContentSize().width / 3 ) - 10
+        cell.frame.size.height = cell.frame.size.width
+        
+        // NOTE:
+        // trick taken from https://stackoverflow.com/questions/2638120/can-i-change-the-size-of-uiactivityindicator
+        cell.activityIndicator.transform = CGAffineTransformMakeScale( 1.5, 1.5 )
+        
+        // var imageTask = NSURLSessionDataTask
+        if photoResults.count != 0
+        {
+            if let imageInfo = photoResults[ indexPath.item ]
+            {
+                if cell.imageTask != nil
+                {
+                    if let cellImage = self.currentAlbum[ indexPath.item ]
+                    {
+                        cell.photoImageView.image = self.currentAlbum[ indexPath.item ]
+                    }
+                    
+                    return cell
+                }
+                else
+                {
+                    let imageTask = FlickrClient.sharedInstance().taskForImage( imageInfo )
+                    {
+                        imageData, imageError in
+                        
+                        if imageError != nil
+                        {
+                            println( "There was an error retrieving the image from Flickr: \( imageError )" )
+                        }
+                        else
+                        {
+                            cell.photoImageView.image = UIImage( data: imageData! )
+                            self.currentAlbum[ indexPath.item ] = UIImage( data: imageData! )!
+                        }
+                    }
+                    
+                    cell.imageTask = imageTask
+                    
+                    return cell
+                }
+            }
+        }
+        
+        return cell
+    }
 }

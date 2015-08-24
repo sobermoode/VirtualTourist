@@ -29,7 +29,9 @@ class PhotoAlbumViewController: UIViewController,
     
     var photoResults = [[ String : AnyObject ]?]()
     
-    var currentAlbum = [ UIImage? ]( count: 30, repeatedValue: nil )
+    var currentAlbum = [ UIImage? ]()
+    
+    var dynamicItemAmount: Bool = false
     
     override func viewDidLoad()
     {
@@ -72,15 +74,48 @@ class PhotoAlbumViewController: UIViewController,
             {
                 if photoResults.count == 0
                 {
-                    println( "No one took any pictures at that location 😓" )
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        self.photoAlbumCollection.hidden = true
+                        
+                        let alert = UIAlertController(
+                            title: "😓   😓   😓",
+                            message: "No one took any pictures at that location.",
+                            preferredStyle: UIAlertControllerStyle.Alert
+                        )
+                        
+                        let alertAction = UIAlertAction(
+                            title: "Keep Traveling",
+                            style: UIAlertActionStyle.Cancel
+                        )
+                        {
+                            action in
+                            
+                            let travelMap = self.presentingViewController as! TravelMapViewController
+                            travelMap.returningFromPhotoAlbum = true
+                            
+                            self.dismissViewControllerAnimated( true, completion: nil )
+                        }
+                        
+                        alert.addAction( alertAction )
+                        
+                        self.presentViewController(
+                            alert,
+                            animated: true,
+                            completion: nil
+                        )
+                    }
                 }
                 else
                 {
                     self.photoResults = photoResults
+                    self.currentAlbum = [ UIImage? ]( count: photoResults.count, repeatedValue: nil )
                     
                     dispatch_async( dispatch_get_main_queue() )
                     {
                         self.photoAlbumCollection.reloadData()
+                        // self.photoAlbumCollection.reloadSections(NSIndexSet(index: 1))
+                        // self.photoAlbumCollection.reloadInputViews()
                     }
                 }
             }
@@ -201,7 +236,17 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        return 30
+        if dynamicItemAmount
+        {
+            println( "photoResults.count: \( photoResults.count )" )
+            return photoResults.count - 1
+        }
+        else
+        {
+            return 30
+        }
+        // println( "photoResults.count: \( photoResults.count )" )
+        // return photoResults.count - 1
     }
     
     func collectionView(
@@ -230,6 +275,7 @@ class PhotoAlbumViewController: UIViewController,
         // var imageTask = NSURLSessionDataTask
         if photoResults.count != 0
         {
+            println( "Setting the cell for indexPath.item \( indexPath.item )" )
             if let imageInfo = photoResults[ indexPath.item ]
             {
                 if cell.imageTask != nil

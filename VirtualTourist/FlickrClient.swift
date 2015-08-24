@@ -96,15 +96,46 @@ class FlickrClient: NSObject
                     println( "photoArray.count: \( photoArray.count )" )
                     if photoArray.count != 0
                     {
-                        var resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count
+                        var resultCounter: Int
+                        if photoArray.count == 1
+                        {
+                            resultCounter = 1
+                        }
+                        else
+                        {
+                            resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count - 1
+                            println( "resultCounter: \( resultCounter )" )
+                        }
+                        
+                        for ( index, currentPhotoDictionary ) in enumerate( photoArray )
+                        {
+                            if index > resultCounter
+                            {
+                                break
+                            }
+                            else
+                            {
+                                photoResults.append( currentPhotoDictionary )
+                            }
+                            
+                            // println( index, currentPhotoDictionary )
+                        }
+                        println( "photoResults.count: \( photoResults.count )" )
+                        /*
                         for counter in 0...resultCounter
                         {
+                            println( "counter: \( counter )" )
                             // println( "index: \( index )" )
-                            photoResults.append( photoArray[ counter ] )
+                            let currentResult = photoArray[ counter ] as [ String : AnyObject ]
+                            {
+                                photoResults.append( photoArray[ counter ] )
+                            }
+                            
                             // println( "Adding \( photoArray[ index ] )" )
                             // println( "self.albumPhotos.count: \( self.albumPhotos.count )" )
                             // returnImages.append( photoArray[ index ] )
                         }
+                        */
                     }
                     // self.albumForDestinationID.updateValue( albumPhotos, forKey: self.destination.pinNumber )
                     // println( "photoResults: \( photoResults )" )

@@ -31,8 +31,6 @@ class PhotoAlbumViewController: UIViewController,
     
     var currentAlbum = [ UIImage? ]()
     
-    var dynamicItemAmount: Bool = false
-    
     override func viewDidLoad()
     {
         println( "PhotoAlbum viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
@@ -114,8 +112,6 @@ class PhotoAlbumViewController: UIViewController,
                     dispatch_async( dispatch_get_main_queue() )
                     {
                         self.photoAlbumCollection.reloadData()
-                        // self.photoAlbumCollection.reloadSections(NSIndexSet(index: 1))
-                        // self.photoAlbumCollection.reloadInputViews()
                     }
                 }
             }
@@ -236,17 +232,7 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        if dynamicItemAmount
-        {
-            println( "photoResults.count: \( photoResults.count )" )
-            return photoResults.count - 1
-        }
-        else
-        {
-            return 30
-        }
-        // println( "photoResults.count: \( photoResults.count )" )
-        // return photoResults.count - 1
+        return photoResults.count
     }
     
     func collectionView(
@@ -254,15 +240,10 @@ class PhotoAlbumViewController: UIViewController,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
-//        if self.photoResults != nil
-//        {
-//            println( "Getting URL \( self.photoResults![ indexPath.item ] )" )
-//        }
-
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
             "photoAlbumCell",
             forIndexPath: indexPath
-        ) as! PhotoAlbumCell
+            ) as! PhotoAlbumCell
         
         // set the cell dimensions
         cell.frame.size.width = ( collectionView.collectionViewLayout.collectionViewContentSize().width / 3 ) - 10
@@ -275,7 +256,6 @@ class PhotoAlbumViewController: UIViewController,
         // var imageTask = NSURLSessionDataTask
         if photoResults.count != 0
         {
-            println( "Setting the cell for indexPath.item \( indexPath.item )" )
             if let imageInfo = photoResults[ indexPath.item ]
             {
                 if cell.imageTask != nil
@@ -299,8 +279,11 @@ class PhotoAlbumViewController: UIViewController,
                         }
                         else
                         {
-                            cell.photoImageView.image = UIImage( data: imageData! )
-                            self.currentAlbum[ indexPath.item ] = UIImage( data: imageData! )!
+                            dispatch_async( dispatch_get_main_queue() )
+                            {
+                                cell.photoImageView.image = UIImage( data: imageData! )
+                                self.currentAlbum[ indexPath.item ] = UIImage( data: imageData! )!
+                            }
                         }
                     }
                     
@@ -308,6 +291,10 @@ class PhotoAlbumViewController: UIViewController,
                     
                     return cell
                 }
+            }
+            else
+            {
+                println( "There was a problem with the image for the cell." )
             }
         }
         

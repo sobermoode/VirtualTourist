@@ -120,7 +120,12 @@ class FlickrClient: NSObject
                             
                             // println( index, currentPhotoDictionary )
                         }
-                        println( "photoResults.count: \( photoResults.count )" )
+                        
+//                        for photoDict in photoResults
+//                        {
+//                            println( photoDict )
+//                        }
+                        // println( "photoResults: \( photoResults )" )\
                         /*
                         for counter in 0...resultCounter
                         {

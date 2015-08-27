@@ -31,6 +31,8 @@ class PhotoAlbumViewController: UIViewController,
     
     var currentAlbum = [ UIImage? ]()
     
+    var firstTime: Bool = false
+    
     override func viewDidLoad()
     {
         println( "PhotoAlbum viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
@@ -107,10 +109,18 @@ class PhotoAlbumViewController: UIViewController,
                 else
                 {
                     self.photoResults = photoResults
-                    self.currentAlbum = [ UIImage? ]( count: photoResults.count, repeatedValue: nil )
+                    // self.currentAlbum = [ UIImage? ]( count: photoResults.count, repeatedValue: nil )
                     
                     dispatch_async( dispatch_get_main_queue() )
                     {
+                        /*
+                        var indexPaths = [ NSIndexPath ]()
+                        for visibleCell in self.photoAlbumCollection.visibleCells()
+                        {
+                            indexPaths.append( visibleCell.indexPath )
+                        }
+                        self.photoAlbumCollection.reloadItemsAtIndexPaths( indexPaths )
+                        */
                         self.photoAlbumCollection.reloadData()
                     }
                 }
@@ -240,64 +250,90 @@ class PhotoAlbumViewController: UIViewController,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
+        var imageCounter = 0
+        for albumImage in self.currentAlbum
+        {
+            if albumImage != nil
+            {
+                ++imageCounter
+            }
+        }
+        println( "Using \( imageCounter ) images in the photo album." )
+        
+        if let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
             "photoAlbumCell",
             forIndexPath: indexPath
-            ) as! PhotoAlbumCell
-        
-        // set the cell dimensions
-        cell.frame.size.width = ( collectionView.collectionViewLayout.collectionViewContentSize().width / 3 ) - 10
-        cell.frame.size.height = cell.frame.size.width
-        
-        // NOTE:
-        // trick taken from https://stackoverflow.com/questions/2638120/can-i-change-the-size-of-uiactivityindicator
-        cell.activityIndicator.transform = CGAffineTransformMakeScale( 1.5, 1.5 )
-        
-        // var imageTask = NSURLSessionDataTask
-        if photoResults.count != 0
+        ) as? PhotoAlbumCell
         {
-            if let imageInfo = photoResults[ indexPath.item ]
+            
+        // var imageTask = NSURLSessionDataTask
+        if cell.imageTask != nil
+        {
+            /*
+            if let cellImage = self.currentAlbum[ indexPath.item ]
             {
-                if cell.imageTask != nil
-                {
-                    if let cellImage = self.currentAlbum[ indexPath.item ]
-                    {
-                        cell.photoImageView.image = self.currentAlbum[ indexPath.item ]
-                    }
-                    
-                    return cell
-                }
-                else
-                {
-                    let imageTask = FlickrClient.sharedInstance().taskForImage( imageInfo )
-                    {
-                        imageData, imageError in
-                        
-                        if imageError != nil
-                        {
-                            println( "There was an error retrieving the image from Flickr: \( imageError )" )
-                        }
-                        else
-                        {
-                            dispatch_async( dispatch_get_main_queue() )
-                            {
-                                cell.photoImageView.image = UIImage( data: imageData! )
-                                self.currentAlbum[ indexPath.item ] = UIImage( data: imageData! )!
-                            }
-                        }
-                    }
-                    
-                    cell.imageTask = imageTask
-                    
-                    return cell
-                }
+                cell.activityIndicator.hidden = true
+                cell.photoImageView.image = cellImage
+                
+                println( "Returning a cell at point 1" )
+                return cell
             }
             else
             {
-                println( "There was a problem with the image for the cell." )
+                println( "There is no else." )
+                return cell
+            }
+            */
+            println( "Already have a task for cell \( indexPath.item )" )
+            cell.contentView.setNeedsDisplay()
+            return cell
+        }
+        else if cell.imageTask == nil
+        {
+            // set the cell dimensions
+            cell.frame.size.width = ( collectionView.collectionViewLayout.collectionViewContentSize().width / 3 ) - 10
+            cell.frame.size.height = cell.frame.size.width
+            
+            // NOTE:
+            // trick taken from https://stackoverflow.com/questions/2638120/can-i-change-the-size-of-uiactivityindicator
+            cell.activityIndicator.transform = CGAffineTransformMakeScale( 1.5, 1.5 )
+            
+            if let imageInfo = photoResults[ indexPath.item ]
+            {
+                println( "Setting a task for cell \( indexPath.item )" )
+                cell.imageTask = FlickrClient.sharedInstance().taskForImage( imageInfo )
+                {
+                    imageData, imageError in
+                    
+                    if imageError != nil
+                    {
+                        println( "There was an error retrieving the image from Flickr: \( imageError )" )
+                    }
+                    else
+                    {
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            cell.activityIndicator.hidden = true
+                            cell.photoImageView.image = UIImage( data: imageData! )
+                            // self.currentAlbum[ indexPath.item ] = UIImage( data: imageData! )!
+                        }
+                    }
+                }
+                
+                // cell.imageTask = imageTask
+            
+                println( "Returning a cell at point 2" )
+                return cell
+            }
+            else
+            {
+                println( "Couldn't get the image info." )
             }
         }
-        
-        return cell
+        }
+            let newCell = PhotoAlbumCell()
+        println( "photoResults.count  == 0" )
+        println( "Returning a cell at point 3" )
+        return newCell
     }
 }

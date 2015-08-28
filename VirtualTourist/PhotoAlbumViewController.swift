@@ -31,6 +31,8 @@ class PhotoAlbumViewController: UIViewController,
     
     var currentAlbum = [ UIImage? ]()
     
+    var photoAlbum: [ UIImage ]?
+    
     var firstTime: Bool = false
     
     override func viewDidLoad()
@@ -62,6 +64,65 @@ class PhotoAlbumViewController: UIViewController,
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
         
+        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location )
+        {
+            photoAlbum, photoAlbumError in
+            
+            if photoAlbumError != nil
+            {
+                // TODO: turn this into an alert
+                println( "There was a problem requesting the photos from Flickr: \( photoAlbumError )" )
+            }
+            else
+            {
+                if photoAlbum!.count == 0
+                {
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        self.photoAlbumCollection.hidden = true
+                        
+                        let alert = UIAlertController(
+                            title: "😓   😓   😓",
+                            message: "No one took any pictures at that location.",
+                            preferredStyle: UIAlertControllerStyle.Alert
+                        )
+                        
+                        let alertAction = UIAlertAction(
+                            title: "Keep Traveling",
+                            style: UIAlertActionStyle.Cancel
+                        )
+                        {
+                            action in
+                            
+                            let travelMap = self.presentingViewController as! TravelMapViewController
+                            travelMap.returningFromPhotoAlbum = true
+                            
+                            self.dismissViewControllerAnimated( true, completion: nil )
+                        }
+                        
+                        alert.addAction( alertAction )
+                        
+                        self.presentViewController(
+                            alert,
+                            animated: true,
+                            completion: nil
+                        )
+                    }
+                }
+                else
+                {
+                    println( "Successfully got the images: \( photoAlbum )" )
+                    self.photoAlbum = photoAlbum
+                    
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        self.photoAlbumCollection.reloadData()
+                    }
+                }
+            }
+        }
+        
+        /*
         FlickrClient.sharedInstance().requestResultsForLocation( location )
         {
             photoResults, requestError in
@@ -126,6 +187,7 @@ class PhotoAlbumViewController: UIViewController,
                 }
             }
         }
+        */
         
         // println( FlickrClient.sharedInstance().getPhotoResults() )
     }
@@ -301,6 +363,7 @@ class PhotoAlbumViewController: UIViewController,
             if let imageInfo = photoResults[ indexPath.item ]
             {
                 println( "Setting a task for cell \( indexPath.item )" )
+                
                 cell.imageTask = FlickrClient.sharedInstance().taskForImage( imageInfo )
                 {
                     imageData, imageError in

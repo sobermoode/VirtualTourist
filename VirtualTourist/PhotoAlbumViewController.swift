@@ -304,7 +304,18 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        return photoResults.count
+        // return photoResults.count
+        if let thePhotos = photoAlbum
+        {
+            return thePhotos.count
+        }
+        else
+        {
+            println( "Not populating the collection view with anything." )
+            return 0
+        }
+        
+        // return photoAlbum!.count
     }
     
     func collectionView(
@@ -312,91 +323,10 @@ class PhotoAlbumViewController: UIViewController,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
-        var imageCounter = 0
-        for albumImage in self.currentAlbum
-        {
-            if albumImage != nil
-            {
-                ++imageCounter
-            }
-        }
-        println( "Using \( imageCounter ) images in the photo album." )
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier( "photoAlbumCell", forIndexPath: indexPath ) as! PhotoAlbumCell
         
-        if let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
-            "photoAlbumCell",
-            forIndexPath: indexPath
-        ) as? PhotoAlbumCell
-        {
-            
-        // var imageTask = NSURLSessionDataTask
-        if cell.imageTask != nil
-        {
-            /*
-            if let cellImage = self.currentAlbum[ indexPath.item ]
-            {
-                cell.activityIndicator.hidden = true
-                cell.photoImageView.image = cellImage
-                
-                println( "Returning a cell at point 1" )
-                return cell
-            }
-            else
-            {
-                println( "There is no else." )
-                return cell
-            }
-            */
-            println( "Already have a task for cell \( indexPath.item )" )
-            cell.contentView.setNeedsDisplay()
-            return cell
-        }
-        else if cell.imageTask == nil
-        {
-            // set the cell dimensions
-            cell.frame.size.width = ( collectionView.collectionViewLayout.collectionViewContentSize().width / 3 ) - 10
-            cell.frame.size.height = cell.frame.size.width
-            
-            // NOTE:
-            // trick taken from https://stackoverflow.com/questions/2638120/can-i-change-the-size-of-uiactivityindicator
-            cell.activityIndicator.transform = CGAffineTransformMakeScale( 1.5, 1.5 )
-            
-            if let imageInfo = photoResults[ indexPath.item ]
-            {
-                println( "Setting a task for cell \( indexPath.item )" )
-                
-                cell.imageTask = FlickrClient.sharedInstance().taskForImage( imageInfo )
-                {
-                    imageData, imageError in
-                    
-                    if imageError != nil
-                    {
-                        println( "There was an error retrieving the image from Flickr: \( imageError )" )
-                    }
-                    else
-                    {
-                        dispatch_async( dispatch_get_main_queue() )
-                        {
-                            cell.activityIndicator.hidden = true
-                            cell.photoImageView.image = UIImage( data: imageData! )
-                            // self.currentAlbum[ indexPath.item ] = UIImage( data: imageData! )!
-                        }
-                    }
-                }
-                
-                // cell.imageTask = imageTask
-            
-                println( "Returning a cell at point 2" )
-                return cell
-            }
-            else
-            {
-                println( "Couldn't get the image info." )
-            }
-        }
-        }
-            let newCell = PhotoAlbumCell()
-        println( "photoResults.count  == 0" )
-        println( "Returning a cell at point 3" )
-        return newCell
+        cell.photoImageView.image = photoAlbum![ indexPath.item ]
+        
+        return cell
     }
 }

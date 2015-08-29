@@ -66,7 +66,7 @@ class PhotoAlbumViewController: UIViewController,
         
         FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location )
         {
-            photoAlbum, photoAlbumError in
+            photoAlbum, zeroResults, photoAlbumError in
             
             if photoAlbumError != nil
             {
@@ -75,7 +75,7 @@ class PhotoAlbumViewController: UIViewController,
             }
             else
             {
-                if photoAlbum!.count == 0
+                if zeroResults
                 {
                     dispatch_async( dispatch_get_main_queue() )
                     {

@@ -126,7 +126,8 @@ class FlickrClient: NSObject
         // var imageResults: [ UIImage ]?
         
         let requestURL = createQueryURL( location )
-        let requestTask = session.dataTaskWithURL( requestURL )
+        
+        let requestTask = self.session.dataTaskWithURL( requestURL )
         {
             requestData, requestResponse, requestError in
             
@@ -158,7 +159,7 @@ class FlickrClient: NSObject
                         var resultCounter: Int
                         if photoArray.count == 1
                         {
-                            resultCounter = 1
+                            resultCounter = 0
                         }
                         else
                         {
@@ -171,7 +172,7 @@ class FlickrClient: NSObject
                         
                         // strange casting here;
                         // since taking a sub-section of an array returns a Slice (a pointer into an array, not a new array),
-                        // i had to cast the Slice into the type i actually want to use
+                        // and which is itself a type, i had to cast the Slice into the type i actually want to use
                         // check out https://stackoverflow.com/questions/24073269/what-is-a-slice-in-swift for more
                         photoInfo = [ [ String : AnyObject ] ]( photoArray[ 0...resultCounter ] )
                         
@@ -245,31 +246,34 @@ class FlickrClient: NSObject
     {
         println( "Getting \( photoInfo.count ) images..." )
         
-        var photoAlbum = [ UIImage ]()
+        // var photoAlbum = [ UIImage ]()
         // var photoAlbumCounter: Int = 0
         
         for currentPhotoDictionary in photoInfo
         {
             println( "Getting the next photo dictionary..." )
             // get an actual image and append it to an array
-                self.taskForImage( currentPhotoDictionary )
+            
+            // might not need to return a task here, modify taskForImage() not to have a return value
+            let newImageTask = taskForImage( currentPhotoDictionary )
+            {
+                imageData, imageError in
+                
+                if imageError != nil
                 {
-                    imageData, imageError in
-                    
-                    if imageError != nil
-                    {
-                        completionHandler(
-                            photoAlbum: nil,
-                            albumError: imageError
-                        )
-                    }
-                    else
-                    {
-                        println( "Got an image!!!" )
-                            photoAlbum.append( UIImage( data: imageData! )! )
-                            println( "photoAlbum.count: \( photoAlbum.count )" )
-                    }
+                    completionHandler(
+                        photoAlbum: nil,
+                        albumError: imageError
+                    )
                 }
+                else
+                {
+                    println( "Got an image!!!" )
+                    // photoAlbum.append( UIImage( data: imageData! )! )
+                    // println( "photoAlbum.count: \( photoAlbum.count )" )
+                    self.currentAlbumImages.append( UIImage( data: imageData! )! )
+                }
+            }
             
 //            if photoAlbum.count == photoInfo.count
 //            {
@@ -303,7 +307,8 @@ class FlickrClient: NSObject
         let imageURLString = "https://farm\( farmID ).staticflickr.com/\( serverID )/\( photoID )_\( secret ).jpg"
         let imageURL = NSURL( string: imageURLString )!
         
-        let imageTask = session.dataTaskWithURL( imageURL )
+        // var imageTask = NSURLSessionDataTask()
+        let imageTask = self.session.dataTaskWithURL( imageURL )
         {
             imageData, imageResponse, imageError in
             

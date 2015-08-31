@@ -35,6 +35,9 @@ class PhotoAlbumViewController: UIViewController,
     
     var firstTime: Bool = false
     
+    var currentAlbumImageData = [ NSData ]()
+    var currentAlbumImages = [ UIImage? ]()
+    
     override func viewDidLoad()
     {
         println( "PhotoAlbum viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
@@ -113,7 +116,12 @@ class PhotoAlbumViewController: UIViewController,
                 {
                     println( "Successfully got the images: \( photoAlbum )" )
                     // self.photoAlbum = photoAlbum
-                    self.photoAlbum = FlickrClient.sharedInstance().currentAlbumImages
+                    // self.photoAlbum = FlickrClient.sharedInstance().currentAlbumImages
+                    // println( "FlickrClient.sharedInstance().currentAlbumImageData: \( FlickrClient.sharedInstance().currentAlbumImageData )" )
+                    self.currentAlbumImageData = FlickrClient.sharedInstance().currentAlbumImageData
+                    println( "self.currentAlbumImageData.count: \( self.currentAlbumImageData.count )" )
+                    self.currentAlbumImages = [ UIImage? ]( count: self.currentAlbumImageData.count, repeatedValue: nil )
+                    println( "self.currentAlbumImages.count: \( self.currentAlbumImages.count )" )
                     
                     dispatch_async( dispatch_get_main_queue() )
                     {
@@ -122,75 +130,6 @@ class PhotoAlbumViewController: UIViewController,
                 }
             }
         }
-        
-        /*
-        FlickrClient.sharedInstance().requestResultsForLocation( location )
-        {
-            photoResults, requestError in
-            
-            if requestError != nil
-            {
-                println( "There was a problem requesting the photos from Flickr: \( requestError )" )
-            }
-            else
-            {
-                if photoResults.count == 0
-                {
-                    dispatch_async( dispatch_get_main_queue() )
-                    {
-                        self.photoAlbumCollection.hidden = true
-                        
-                        let alert = UIAlertController(
-                            title: "😓   😓   😓",
-                            message: "No one took any pictures at that location.",
-                            preferredStyle: UIAlertControllerStyle.Alert
-                        )
-                        
-                        let alertAction = UIAlertAction(
-                            title: "Keep Traveling",
-                            style: UIAlertActionStyle.Cancel
-                        )
-                        {
-                            action in
-                            
-                            let travelMap = self.presentingViewController as! TravelMapViewController
-                            travelMap.returningFromPhotoAlbum = true
-                            
-                            self.dismissViewControllerAnimated( true, completion: nil )
-                        }
-                        
-                        alert.addAction( alertAction )
-                        
-                        self.presentViewController(
-                            alert,
-                            animated: true,
-                            completion: nil
-                        )
-                    }
-                }
-                else
-                {
-                    self.photoResults = photoResults
-                    // self.currentAlbum = [ UIImage? ]( count: photoResults.count, repeatedValue: nil )
-                    
-                    dispatch_async( dispatch_get_main_queue() )
-                    {
-                        /*
-                        var indexPaths = [ NSIndexPath ]()
-                        for visibleCell in self.photoAlbumCollection.visibleCells()
-                        {
-                            indexPaths.append( visibleCell.indexPath )
-                        }
-                        self.photoAlbumCollection.reloadItemsAtIndexPaths( indexPaths )
-                        */
-                        self.photoAlbumCollection.reloadData()
-                    }
-                }
-            }
-        }
-        */
-        
-        // println( FlickrClient.sharedInstance().getPhotoResults() )
     }
     
     // MARK: Set-up functions
@@ -305,18 +244,7 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        // return photoResults.count
-        if let thePhotos = photoAlbum
-        {
-            return thePhotos.count
-        }
-        else
-        {
-            println( "Not populating the collection view with anything." )
-            return 0
-        }
-        
-        // return photoAlbum!.count
+        return FlickrClient.sharedInstance().currentAlbumImageData.count
     }
     
     func collectionView(
@@ -326,7 +254,19 @@ class PhotoAlbumViewController: UIViewController,
     {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier( "photoAlbumCell", forIndexPath: indexPath ) as! PhotoAlbumCell
         
-        cell.photoImageView.image = photoAlbum![ indexPath.item ]
+        if currentAlbumImages[ indexPath.item ] == nil
+        {
+            println( "Creating a new image..." )
+            let cellImage = UIImage( data: currentAlbumImageData[ indexPath.item ] )
+            currentAlbumImages[ indexPath.item ] = cellImage
+            
+            cell.photoImageView.image = cellImage
+        }
+        else
+        {
+            println( "Reusing an image." )
+            cell.photoImageView.image = currentAlbumImages[ indexPath.item ]
+        }
         
         return cell
     }

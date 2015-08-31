@@ -20,6 +20,7 @@ class FlickrClient: NSObject
     
     // holder collections
     var currentAlbumPhotoInfo = [[ String : AnyObject ]]()
+    var currentAlbumImageData = [ NSData ]()
     // var albumImages: [ UIImage? ]?
     var currentAlbumImages = [ UIImage ]()
     
@@ -65,6 +66,9 @@ class FlickrClient: NSObject
         completionHandler: ( success: Bool, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
     )
     {
+        currentAlbumImageData.removeAll(keepCapacity: false)
+        currentAlbumImages.removeAll(keepCapacity: false)
+        
         requestResultsForLocation( location )
         {
             success, requestError in
@@ -77,39 +81,23 @@ class FlickrClient: NSObject
                     photoAlbumError: requestError
                 )
             }
-            else
+            else if success
             {
-                self.getImagesForAlbum()
+                if self.currentAlbumPhotoInfo.count == 0 || self.currentAlbumImageData.count == 0
                 {
-                    success, albumError in
-                    
-                    if albumError != nil
-                    {
-                        completionHandler(
-                            success: false,
-                            zeroResults: false,
-                            photoAlbumError: albumError
-                        )
-                    }
-                    else if success
-                    {
-                        if self.currentAlbumImages.count == 0
-                        {
-                            completionHandler(
-                                success: true,
-                                zeroResults: true,
-                                photoAlbumError: nil
-                            )
-                        }
-                        else
-                        {
-                            completionHandler(
-                                success: true,
-                                zeroResults: false,
-                                photoAlbumError: nil
-                            )
-                        }
-                    }
+                    completionHandler(
+                        success: true,
+                        zeroResults: true,
+                        photoAlbumError: nil
+                    )
+                }
+                else
+                {
+                    completionHandler(
+                        success: true,
+                        zeroResults: false,
+                        photoAlbumError: nil
+                    )
                 }
             }
         }
@@ -176,49 +164,18 @@ class FlickrClient: NSObject
                         // check out https://stackoverflow.com/questions/24073269/what-is-a-slice-in-swift for more
                         self.currentAlbumPhotoInfo = [ [ String : AnyObject ] ]( photoArray[ 0...resultCounter ] )
                         
-                        /*
-                        for ( index, currentPhotoDictionary ) in enumerate( photoArray )
+                        for photoInfoDictionary in photoArray
                         {
-                            if index > resultCounter
-                            {
-                                break
-                            }
-                            else
-                            {
-                                photoInfo.append( currentPhotoDictionary )
-                            }
-                            
-                            // println( index, currentPhotoDictionary )
+                            let imageURL = self.urlForImageInfo( photoInfoDictionary )
+                            let imageData = NSData( contentsOfURL: imageURL )!
+                            self.currentAlbumImageData.append( imageData )
                         }
-                        */
                         
-                        /*
-                        for photoInfo in photoResults
-                        {
-                            // get an actual image and append it to an array
-                            let currentImageTask = self.taskForImage(photoInfo)
-                            {
-                                imageData, imageError in
-                                
-                                if imageError != nil
-                                {
-                                    completionHandler(photoResults: <#[[String : AnyObject]?]#>, requestError: <#NSError!#>)
-                                }
-                                else
-                                {
-                                    
-                                }
-                            }
-                        }
-                        */
+                        completionHandler(
+                            success: true,
+                            requestError: nil
+                        )
                     }
-                    // self.albumForDestinationID.updateValue( albumPhotos, forKey: self.destination.pinNumber )
-                    // println( "photoResults: \( photoResults )" )
-                    
-                    completionHandler(
-                        success: true,
-                        requestError: nil
-                    )
                 }
                 else
                 {
@@ -237,6 +194,18 @@ class FlickrClient: NSObject
             }
         }
         requestTask.resume()
+    }
+    
+    func urlForImageInfo( imageInfo: [ String : AnyObject ] ) -> NSURL!
+    {
+        let farmID = imageInfo[ "farm" ] as! Int
+        let serverID = imageInfo[ "server" ] as! String
+        let photoID = imageInfo[ "id" ] as! String
+        let secret = imageInfo[ "secret" ] as! String
+        
+        let imageURLString = "https://farm\( farmID ).staticflickr.com/\( serverID )/\( photoID )_\( secret ).jpg"
+        
+        return NSURL( string: imageURLString )!
     }
     
     func getImagesForAlbum( completionHandler: ( success: Bool, albumError: NSError? ) -> Void )

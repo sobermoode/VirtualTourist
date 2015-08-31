@@ -64,8 +64,6 @@ class PhotoAlbumViewController: UIViewController,
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
         
-        dispatch_async( dispatch_get_global_queue( Int(QOS_CLASS_USER_INITIATED.value), 0) )
-        {
         FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( self.location )
         {
             photoAlbum, zeroResults, photoAlbumError in
@@ -114,7 +112,8 @@ class PhotoAlbumViewController: UIViewController,
                 else
                 {
                     println( "Successfully got the images: \( photoAlbum )" )
-                    self.photoAlbum = photoAlbum
+                    // self.photoAlbum = photoAlbum
+                    self.photoAlbum = FlickrClient.sharedInstance().currentAlbumImages
                     
                     dispatch_async( dispatch_get_main_queue() )
                     {
@@ -122,7 +121,6 @@ class PhotoAlbumViewController: UIViewController,
                     }
                 }
             }
-        }
         }
         
         /*

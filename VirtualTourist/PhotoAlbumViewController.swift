@@ -69,7 +69,7 @@ class PhotoAlbumViewController: UIViewController,
         
         FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( self.location )
         {
-            photoAlbum, zeroResults, photoAlbumError in
+            success, zeroResults, photoAlbumError in
             
             if photoAlbumError != nil
             {
@@ -114,7 +114,7 @@ class PhotoAlbumViewController: UIViewController,
                 }
                 else
                 {
-                    println( "Successfully got the images: \( photoAlbum )" )
+                    println( "Successfully got the images: \( success )" )
                     // self.photoAlbum = photoAlbum
                     // self.photoAlbum = FlickrClient.sharedInstance().currentAlbumImages
                     // println( "FlickrClient.sharedInstance().currentAlbumImageData: \( FlickrClient.sharedInstance().currentAlbumImageData )" )

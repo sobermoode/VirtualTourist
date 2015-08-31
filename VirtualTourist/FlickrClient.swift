@@ -66,8 +66,8 @@ class FlickrClient: NSObject
         completionHandler: ( success: Bool, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
     )
     {
-        currentAlbumImageData.removeAll(keepCapacity: false)
-        currentAlbumImages.removeAll(keepCapacity: false)
+        currentAlbumImageData.removeAll( keepCapacity: false )
+        currentAlbumImages.removeAll( keepCapacity: false )
         
         requestResultsForLocation( location )
         {
@@ -83,8 +83,9 @@ class FlickrClient: NSObject
             }
             else if success
             {
-                if self.currentAlbumPhotoInfo.count == 0 || self.currentAlbumImageData.count == 0
+                if self.currentAlbumPhotoInfo.isEmpty || self.currentAlbumImageData.isEmpty
                 {
+                    println( "Zero results..." )
                     completionHandler(
                         success: true,
                         zeroResults: true,
@@ -164,18 +165,18 @@ class FlickrClient: NSObject
                         // check out https://stackoverflow.com/questions/24073269/what-is-a-slice-in-swift for more
                         self.currentAlbumPhotoInfo = [ [ String : AnyObject ] ]( photoArray[ 0...resultCounter ] )
                         
-                        for photoInfoDictionary in photoArray
+                        for photoInfoDictionary in self.currentAlbumPhotoInfo
                         {
                             let imageURL = self.urlForImageInfo( photoInfoDictionary )
                             let imageData = NSData( contentsOfURL: imageURL )!
                             self.currentAlbumImageData.append( imageData )
                         }
-                        
-                        completionHandler(
-                            success: true,
-                            requestError: nil
-                        )
                     }
+                    
+                    completionHandler(
+                        success: true,
+                        requestError: nil
+                    )
                 }
                 else
                 {

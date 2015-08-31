@@ -34,6 +34,7 @@
 /* Begin PBXFileReference section */
 		8161D20B1B8627590090A108 /* PhotoAlbumCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumCell.swift; sourceTree = "<group>"; };
 		8161D20D1B867E230090A108 /* FlickrClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrClient.swift; sourceTree = "<group>"; };
+		81A1E9281B93F44B00BC1D96 /* EmptyArray.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; name = EmptyArray.playground; path = ../../../EmptyArray.playground; sourceTree = "<group>"; };
 		81ADBCD51B82EABA0028E1C8 /* VirtualTourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VirtualTourist.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		81ADBCD91B82EABA0028E1C8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		81ADBCDA1B82EABA0028E1C8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -100,6 +101,7 @@
 				81ADBD051B83F55D0028E1C8 /* TravelMapAnnotationView.swift */,
 				81ADBD071B8539620028E1C8 /* PhotoAlbumViewController.swift */,
 				8161D20B1B8627590090A108 /* PhotoAlbumCell.swift */,
+				81A1E9281B93F44B00BC1D96 /* EmptyArray.playground */,
 				81ADBCD81B82EABA0028E1C8 /* Supporting Files */,
 			);
 			path = VirtualTourist;

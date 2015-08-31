@@ -118,9 +118,9 @@ class PhotoAlbumViewController: UIViewController,
                     // self.photoAlbum = photoAlbum
                     // self.photoAlbum = FlickrClient.sharedInstance().currentAlbumImages
                     // println( "FlickrClient.sharedInstance().currentAlbumImageData: \( FlickrClient.sharedInstance().currentAlbumImageData )" )
-                    self.currentAlbumImageData = FlickrClient.sharedInstance().currentAlbumImageData
-                    println( "self.currentAlbumImageData.count: \( self.currentAlbumImageData.count )" )
-                    self.currentAlbumImages = [ UIImage? ]( count: self.currentAlbumImageData.count, repeatedValue: nil )
+                    // self.currentAlbumImageData = FlickrClient.sharedInstance().currentAlbumImageData
+                    // println( "self.currentAlbumImageData.count: \( self.currentAlbumImageData.count )" )
+                    self.currentAlbumImages = [ UIImage? ]( count: FlickrClient.sharedInstance().currentAlbumPhotoInfo.count, repeatedValue: nil )
                     println( "self.currentAlbumImages.count: \( self.currentAlbumImages.count )" )
                     
                     dispatch_async( dispatch_get_main_queue() )
@@ -244,7 +244,7 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        return FlickrClient.sharedInstance().currentAlbumImageData.count
+        return FlickrClient.sharedInstance().currentAlbumPhotoInfo.count
     }
     
     func collectionView(
@@ -253,21 +253,51 @@ class PhotoAlbumViewController: UIViewController,
     ) -> UICollectionViewCell
     {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier( "photoAlbumCell", forIndexPath: indexPath ) as! PhotoAlbumCell
+        // cell.activityIndicator.startAnimating()
         
         if currentAlbumImages[ indexPath.item ] == nil
         {
             println( "Creating a new image..." )
-            let cellImage = UIImage( data: currentAlbumImageData[ indexPath.item ] )
-            currentAlbumImages[ indexPath.item ] = cellImage
+            let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
             
-            cell.photoImageView.image = cellImage
+            dispatch_sync( dispatch_get_global_queue( Int( QOS_CLASS_USER_INTERACTIVE.value ), 0 ) )
+                {
+            let imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
+            {
+                imageData, imageResponse, imageError in
+                
+                let cellImage = UIImage( data: imageData! )!
+                self.currentAlbumImages[ indexPath.item ] = cellImage
+            }
+            imageTask.resume()
+            }
+            return cell
+            
+//            let imageData = NSData( contentsOfURL: imageURL )!
+//            let cellImage = UIImage( data: imageData )
+//            self.currentAlbumImages[ indexPath.item ] = cellImage
+            
+//            dispatch_async( dispatch_get_main_queue() )
+//                {
+//                    collectionView.reloadData()
+//            }
+            
+            // return cell
+            
+            // collectionView.reloadData()
+            
+            // cell.activityIndicator.hidden = true
+            // cell.photoImageView.image = cellImage
+            // return cell
         }
         else
         {
             println( "Reusing an image." )
-            cell.photoImageView.image = currentAlbumImages[ indexPath.item ]
+            cell.photoImageView.image = self.currentAlbumImages[ indexPath.item ]
+            
+            return cell
         }
         
-        return cell
+        // return cell
     }
 }

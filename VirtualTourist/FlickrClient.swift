@@ -19,10 +19,11 @@ class FlickrClient: NSObject
     // var destination: Pin!
     
     // holder collections
-    var currentAlbumPhotoInfo = [[ String : AnyObject ]]()
-    var currentAlbumImageData = [ NSData ]()
+    // var currentAlbumPhotoInfo = [[ String : AnyObject ]]()
+    var currentAlbumPhotoInfo = [ NSURL ]()
+    // var currentAlbumImageData = [ NSData ]()
     // var albumImages: [ UIImage? ]?
-    var currentAlbumImages = [ UIImage ]()
+    // var currentAlbumImages = [ UIImage ]()
     
     // var currentDestinationID: Int16!
     var albumForDestinationID = [ Int16 : AnyObject ]()
@@ -66,8 +67,9 @@ class FlickrClient: NSObject
         completionHandler: ( success: Bool, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
     )
     {
-        currentAlbumImageData.removeAll( keepCapacity: false )
-        currentAlbumImages.removeAll( keepCapacity: false )
+        // currentAlbumImageData.removeAll( keepCapacity: false )
+        currentAlbumPhotoInfo.removeAll( keepCapacity: false )
+        // currentAlbumImages.removeAll( keepCapacity: false )
         
         requestResultsForLocation( location )
         {
@@ -83,7 +85,7 @@ class FlickrClient: NSObject
             }
             else if success
             {
-                if self.currentAlbumPhotoInfo.isEmpty || self.currentAlbumImageData.isEmpty
+                if self.currentAlbumPhotoInfo.isEmpty
                 {
                     println( "Zero results..." )
                     completionHandler(
@@ -163,13 +165,14 @@ class FlickrClient: NSObject
                         // since taking a sub-section of an array returns a Slice (a pointer into an array, not a new array),
                         // and which is itself a type, i had to cast the Slice into the type i actually want to use
                         // check out https://stackoverflow.com/questions/24073269/what-is-a-slice-in-swift for more
-                        self.currentAlbumPhotoInfo = [ [ String : AnyObject ] ]( photoArray[ 0...resultCounter ] )
+                        let albumInfos = [ [ String : AnyObject ] ]( photoArray[ 0...resultCounter ] )
                         
-                        for photoInfoDictionary in self.currentAlbumPhotoInfo
+                        for photoInfoDictionary in albumInfos
                         {
                             let imageURL = self.urlForImageInfo( photoInfoDictionary )
-                            let imageData = NSData( contentsOfURL: imageURL )!
-                            self.currentAlbumImageData.append( imageData )
+                            self.currentAlbumPhotoInfo.append( imageURL )
+                            // let imageData = NSData( contentsOfURL: imageURL )!
+                            // self.currentAlbumImageData.append( imageData )
                         }
                     }
                     
@@ -209,6 +212,7 @@ class FlickrClient: NSObject
         return NSURL( string: imageURLString )!
     }
     
+    /*
     func getImagesForAlbum( completionHandler: ( success: Bool, albumError: NSError? ) -> Void )
     {
         // println( "Getting \( photoInfo.count ) images..." )
@@ -270,6 +274,7 @@ class FlickrClient: NSObject
         }
         }
     }
+    */
     
     func taskForImage(
         imageInfo: [ String : AnyObject ],

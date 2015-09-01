@@ -63,6 +63,7 @@ class PhotoAlbumViewController: UIViewController,
         photoAlbumCollection.allowsMultipleSelection = true
         photoAlbumCollection.dataSource = self
         photoAlbumCollection.delegate = self
+        // photoAlbumCollection.registerClass(PhotoAlbumCell.self, forCellWithReuseIdentifier: "photoAlbumCell")
         
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
@@ -253,9 +254,10 @@ class PhotoAlbumViewController: UIViewController,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier( "photoAlbumCell", forIndexPath: indexPath ) as? PhotoAlbumCell
+        println( "indexPath.item: \( indexPath.item )" )
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier( "photoAlbumCell", forIndexPath: indexPath ) as! PhotoAlbumCell
         
-        if cell?.photoImageView.image == nil
+        if cell.photoImageView.image == nil
         {
 //                let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
 //                let imageData = NSData( contentsOfURL: imageURL )!
@@ -268,10 +270,20 @@ class PhotoAlbumViewController: UIViewController,
 //            
 //            return cell!
             
-            if cell?.imageTask == nil
+            if let cellImage = self.currentAlbumImages[ indexPath.item ]
             {
+                dispatch_async( dispatch_get_main_queue() )
+                    {
+                        cell.photoImageView.image = cellImage
+                }
+            }
+            else if cell.imageTask == nil
+            {
+                // dispatch_get_global_queue( Int( QOS_CLASS_USER_INTERACTIVE.value ), 0 )
+                dispatch_async( dispatch_get_main_queue() )
+                    {
                 let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
-                cell?.imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
+                cell.imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
                 {
                     imageData, imageResponse, imageError in
                     
@@ -279,18 +291,20 @@ class PhotoAlbumViewController: UIViewController,
                     self.currentAlbumImages[ indexPath.item ] = cellImage
                     dispatch_async( dispatch_get_main_queue() )
                     {
-                        cell?.photoImageView.image = cellImage
+                        cell.photoImageView.image = cellImage
                     }
                 }
-                cell?.imageTask!.resume()
-            }
-            else if let cellImage = self.currentAlbumImages[ indexPath.item ]
-            {
-                dispatch_async( dispatch_get_main_queue() )
-                {
-                    cell?.photoImageView.image = cellImage
+                cell.imageTask!.resume()
                 }
+//                dispatch_async( dispatch_get_main_queue() )
+//                    {
+//                collectionView.reloadData()
+//                }
             }
+        }
+        else
+        {
+            cell.photoImageView.image = self.currentAlbumImages[ indexPath.item ]
         }
         /*
         else if let cellImage = self.currentAlbumImages[ indexPath.item ]
@@ -303,7 +317,7 @@ class PhotoAlbumViewController: UIViewController,
         }
         */
         
-        return cell!
+        return cell
         
 //            println( "Reusing a cell..." )
 //            println( "The cells image is \( cell.photoImageView.image )" )

@@ -115,14 +115,10 @@ class PhotoAlbumViewController: UIViewController,
                 }
                 else
                 {
-                    println( "Successfully got the images: \( success )" )
-                    // self.photoAlbum = photoAlbum
-                    // self.photoAlbum = FlickrClient.sharedInstance().currentAlbumImages
-                    // println( "FlickrClient.sharedInstance().currentAlbumImageData: \( FlickrClient.sharedInstance().currentAlbumImageData )" )
-                    // self.currentAlbumImageData = FlickrClient.sharedInstance().currentAlbumImageData
-                    // println( "self.currentAlbumImageData.count: \( self.currentAlbumImageData.count )" )
-                    self.currentAlbumImages = [ UIImage? ]( count: FlickrClient.sharedInstance().currentAlbumPhotoInfo.count, repeatedValue: nil )
-                    println( "self.currentAlbumImages.count: \( self.currentAlbumImages.count )" )
+                    self.currentAlbumImages = [ UIImage? ](
+                        count: FlickrClient.sharedInstance().currentAlbumPhotoInfo.count,
+                        repeatedValue: nil
+                    )
                     
                     dispatch_async( dispatch_get_main_queue() )
                     {

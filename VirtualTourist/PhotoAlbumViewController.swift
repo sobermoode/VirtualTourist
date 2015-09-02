@@ -249,185 +249,48 @@ class PhotoAlbumViewController: UIViewController,
         return self.currentAlbumImages.count
     }
     
+    // NOTE:
+    // logic inspired by http://natashatherobot.com/ios-how-to-download-images-asynchronously-make-uitableview-scroll-fast/
     func collectionView(
         collectionView: UICollectionView,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
-        println( "indexPath.item: \( indexPath.item )" )
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier( "photoAlbumCell", forIndexPath: indexPath ) as! PhotoAlbumCell
-        
-        if cell.photoImageView.image == nil
+        if let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
+            "photoAlbumCell",
+            forIndexPath: indexPath
+        ) as? PhotoAlbumCell
         {
-//                let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
-//                let imageData = NSData( contentsOfURL: imageURL )!
-//                let cellImage = UIImage( data: imageData )
-//                self.currentAlbumImages[ indexPath.item ] = cellImage
-//                dispatch_async( dispatch_get_main_queue() )
-//                {
-//                    cell?.photoImageView.image = cellImage
-//                }
-//            
-//            return cell!
-            
-            if let cellImage = self.currentAlbumImages[ indexPath.item ]
+            if let cellImage = currentAlbumImages[ indexPath.item ]
             {
-                dispatch_async( dispatch_get_main_queue() )
-                    {
-                        cell.photoImageView.image = cellImage
-                }
-            }
-            else if cell.imageTask == nil
-            {
-                // dispatch_get_global_queue( Int( QOS_CLASS_USER_INTERACTIVE.value ), 0 )
-                dispatch_async( dispatch_get_main_queue() )
-                    {
-                let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
-                cell.imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
-                {
-                    imageData, imageResponse, imageError in
-                    
-                    let cellImage = UIImage( data: imageData! )!
-                    self.currentAlbumImages[ indexPath.item ] = cellImage
-                    dispatch_async( dispatch_get_main_queue() )
-                    {
-                        cell.photoImageView.image = cellImage
-                    }
-                }
-                cell.imageTask!.resume()
-                }
-//                dispatch_async( dispatch_get_main_queue() )
-//                    {
-//                collectionView.reloadData()
-//                }
-            }
-        }
-        else
-        {
-            cell.photoImageView.image = self.currentAlbumImages[ indexPath.item ]
-        }
-        /*
-        else if let cellImage = self.currentAlbumImages[ indexPath.item ]
-        {
-            // let cellImage = self.currentAlbumImages[ indexPath.item ]
-            dispatch_async( dispatch_get_main_queue() )
-            {
-                cell?.photoImageView.image = cellImage
-            }
-        }
-        */
-        
-        return cell
-        
-//            println( "Reusing a cell..." )
-//            println( "The cells image is \( cell.photoImageView.image )" )
-//            return cell
-        // cell.activityIndicator.startAnimating()
-        
-//        if !( indexPath.item >= 0 ) || !( indexPath.item <= FlickrClient.sharedInstance().currentAlbumPhotoInfo.count )
-//        {
-//            return cell
-//        }
-
-        /*
-        if self.currentAlbumImages[ indexPath.item ] == nil
-        {
-            if cell.imageTask == nil
-            {
-                println( "Creating a new image for \( FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ] )" )
-                let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
+                cell.photoImageView.image = cellImage
                 
-                let imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
-                {
-                    imageData, imageResponse, imageError in
-                    
-                    let cellImage = UIImage( data: imageData! )!
-                    self.currentAlbumImages[ indexPath.item ] = cellImage
-                    cell.photoImageView.image = cellImage
-                }
-                
-                cell.imageTask = imageTask
-                imageTask.resume()
-            }
-        }
-        else
-        {
-            cell.photoImageView.image = self.currentAlbumImages[ indexPath.item ]
-        }
-        
-        return cell
-        
-        /*
-        if cell.imageTask != nil
-        {
-            println( "Cell imageTask is not nil..." )
-            if self.currentAlbumImages[ indexPath.item ] != nil
-            {
-                cell.photoImageView.image = self.currentAlbumImages[ indexPath.item ]
+                return cell
             }
             else
             {
-                // collectionView.reloadData()
-                // return cell
-                // cell.photoImageView.image = UIImage( data: NSData( contentsOfURL: FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ] )! )
-            }
-        }
-        else if cell.imageTask == nil
-        {
-            println( "Creating a new image for \( FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ] )" )
-            let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
-            
-            let imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
-            {
-                imageData, imageResponse, imageError in
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
+                    
+                    let imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
+                    {
+                        imageData, imageResponse, imageError in
+                        
+                        let cellImage = UIImage( data: imageData )
+                        
+                        cell.photoImageView.image = cellImage
+                        self.currentAlbumImages[ indexPath.item ] = cellImage
+                    }
+                    imageTask.resume()
+                }
                 
-                let cellImage = UIImage( data: imageData! )!
-                self.currentAlbumImages[ indexPath.item ] = cellImage
-                cell.photoImageView.image = cellImage
+                return cell
             }
-                    cell.imageTask = imageTask
-            imageTask.resume()
-            
-//            var visibleIndexPaths = [ NSIndexPath ]()
-//            for visibleCell in collectionView.visibleCells()
-//            {
-//                if let visibleIndexPath = visibleCell.indexPath
-//                {
-//                    visibleIndexPaths.append( visibleIndexPath )
-//                }
-//            }
-//            collectionView.reloadItemsAtIndexPaths( visibleIndexPaths )
-            
-            // collectionView.reloadData()
-            
-//            let imageData = NSData( contentsOfURL: imageURL )!
-//            let cellImage = UIImage( data: imageData )
-//            self.currentAlbumImages[ indexPath.item ] = cellImage
-            
-//            dispatch_async( dispatch_get_main_queue() )
-//                {
-//                    collectionView.reloadData()
-//            }
-            
-            // return cell
-            
-            // collectionView.reloadData()
-            
-            // cell.activityIndicator.hidden = true
-            // cell.photoImageView.image = cellImage
-            // return cell
         }
         else
         {
-            println( "Reusing an image." )
-            cell.photoImageView.image = self.currentAlbumImages[ indexPath.item ]
-            
-            // return cell
+            return UICollectionViewCell( frame: CGRect( x: 0, y: 0, width: 125, height: 108 ) )
         }
-*/
-        
-        // cell.photoImageView.image = self.currentAlbumImages[ indexPath.item ]
-        // return cell
-    */
     }
 }

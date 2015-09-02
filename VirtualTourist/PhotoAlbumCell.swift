@@ -15,5 +15,5 @@ class PhotoAlbumCell: UICollectionViewCell
     @IBOutlet weak var photoImageView: UIImageView!
     
     // task for retrieving the image from Flickr
-    var imageTask: NSURLSessionDataTask? = nil
+    // var imageTask: NSURLSessionDataTask? = nil
 }

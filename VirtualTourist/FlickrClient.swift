@@ -19,9 +19,11 @@ class FlickrClient: NSObject
     // var destination: Pin!
     
     // holder collections
-    var albumPhotos = [[ String : AnyObject ]]()
+    // var currentAlbumPhotoInfo = [[ String : AnyObject ]]()
+    var currentAlbumPhotoInfo = [ NSURL ]()
+    // var currentAlbumImageData = [ NSData ]()
     // var albumImages: [ UIImage? ]?
-    var currentAlbumImages = [ UIImage ]()
+    // var currentAlbumImages = [ UIImage ]()
     
     // var currentDestinationID: Int16!
     var albumForDestinationID = [ Int16 : AnyObject ]()
@@ -60,23 +62,72 @@ class FlickrClient: NSObject
         return NSURL( string: queryString )!
     }
     
+    func getNewPhotoAlbumForLocation(
+        location: CLLocationCoordinate2D,
+        completionHandler: ( success: Bool, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
+    )
+    {
+        // currentAlbumImageData.removeAll( keepCapacity: false )
+        currentAlbumPhotoInfo.removeAll( keepCapacity: false )
+        // currentAlbumImages.removeAll( keepCapacity: false )
+        
+        requestResultsForLocation( location )
+        {
+            success, requestError in
+            
+            if requestError != nil
+            {
+                completionHandler(
+                    success: false,
+                    zeroResults: false,
+                    photoAlbumError: requestError
+                )
+            }
+            else if success
+            {
+                if self.currentAlbumPhotoInfo.isEmpty
+                {
+                    println( "Zero results..." )
+                    completionHandler(
+                        success: true,
+                        zeroResults: true,
+                        photoAlbumError: nil
+                    )
+                }
+                else
+                {
+                    completionHandler(
+                        success: true,
+                        zeroResults: false,
+                        photoAlbumError: nil
+                    )
+                }
+            }
+        }
+    }
+    
     func requestResultsForLocation(
         location: CLLocationCoordinate2D,
-        completionHandler: ( photoResults: [[ String : AnyObject ]?], requestError: NSError! ) -> Void
+        completionHandler: ( success: Bool, requestError: NSError! ) -> Void
     )
     {
         println( "requestResultsForDestination..." )
         
-        var photoResults = [[ String : AnyObject ]?]()
+        // var photoInfo = [ [ String : AnyObject ] ]()
+        // var imageResults: [ UIImage ]?
         
         let requestURL = createQueryURL( location )
-        let requestTask = session.dataTaskWithURL( requestURL )
+        
+        let requestTask = self.session.dataTaskWithURL( requestURL )
         {
             requestData, requestResponse, requestError in
             
             if requestError != nil
             {
-                return completionHandler( photoResults: photoResults, requestError: requestError )
+                completionHandler(
+                    success: false,
+                    requestError: requestError
+                )
             }
             else
             {
@@ -85,7 +136,7 @@ class FlickrClient: NSObject
                     requestData,
                     options: nil,
                     error: jsonificationError
-                    ) as? [ String : AnyObject ]
+                ) as? [ String : AnyObject ]
                 {
                     // println( "Parsing results from Flickr..." )
                     // println( "requestResults: \( requestResults )" )
@@ -93,19 +144,42 @@ class FlickrClient: NSObject
                     let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
                     
                     // var photoResults = [[ String : AnyObject ]?]()
-                    var resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count
-                    for counter in 0...resultCounter
+                    println( "photoArray.count: \( photoArray.count )" )
+                    if photoArray.count != 0
                     {
-                        // println( "index: \( index )" )
-                        photoResults.append( photoArray[ counter ] )
-                        // println( "Adding \( photoArray[ index ] )" )
-                        // println( "self.albumPhotos.count: \( self.albumPhotos.count )" )
-                        // returnImages.append( photoArray[ index ] )
+                        var resultCounter: Int
+                        if photoArray.count == 1
+                        {
+                            resultCounter = 0
+                        }
+                        else
+                        {
+                            resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count - 1
+                            println( "resultCounter: \( resultCounter )" )
+                        }
+                        
+                        // let photoRange = NSMakeRange(0, resultCounter)
+                        // let photoIndices = NSIndexSet(indexesInRange: photoRange)
+                        
+                        // strange casting here;
+                        // since taking a sub-section of an array returns a Slice (a pointer into an array, not a new array),
+                        // and which is itself a type, i had to cast the Slice into the type i actually want to use
+                        // check out https://stackoverflow.com/questions/24073269/what-is-a-slice-in-swift for more
+                        let albumInfos = [ [ String : AnyObject ] ]( photoArray[ 0...resultCounter ] )
+                        
+                        for photoInfoDictionary in albumInfos
+                        {
+                            let imageURL = self.urlForImageInfo( photoInfoDictionary )
+                            self.currentAlbumPhotoInfo.append( imageURL )
+                            // let imageData = NSData( contentsOfURL: imageURL )!
+                            // self.currentAlbumImageData.append( imageData )
+                        }
                     }
-                    // self.albumForDestinationID.updateValue( albumPhotos, forKey: self.destination.pinNumber )
-                    // println( "photoResults: \( photoResults )" )
                     
-                    return completionHandler( photoResults: photoResults, requestError: nil )
+                    completionHandler(
+                        success: true,
+                        requestError: nil
+                    )
                 }
                 else
                 {
@@ -115,17 +189,33 @@ class FlickrClient: NSObject
                         code: 2112,
                         userInfo: errorDictionary
                     )
-                    return completionHandler( photoResults: photoResults, requestError: requestError )
+                    
+                    completionHandler(
+                        success: false,
+                        requestError: requestError
+                    )
                 }
             }
         }
         requestTask.resume()
     }
     
+    func urlForImageInfo( imageInfo: [ String : AnyObject ] ) -> NSURL!
+    {
+        let farmID = imageInfo[ "farm" ] as! Int
+        let serverID = imageInfo[ "server" ] as! String
+        let photoID = imageInfo[ "id" ] as! String
+        let secret = imageInfo[ "secret" ] as! String
+        
+        let imageURLString = "https://farm\( farmID ).staticflickr.com/\( serverID )/\( photoID )_\( secret ).jpg"
+        
+        return NSURL( string: imageURLString )!
+    }
+    
     func taskForImage(
         imageInfo: [ String : AnyObject ],
         completionHandler: ( imageData: NSData?, imageError: NSError? ) -> Void
-    ) -> NSURLSessionDataTask
+    )
     {
         let farmID = imageInfo[ "farm" ] as! Int
         let serverID = imageInfo[ "server" ] as! String
@@ -135,32 +225,31 @@ class FlickrClient: NSObject
         let imageURLString = "https://farm\( farmID ).staticflickr.com/\( serverID )/\( photoID )_\( secret ).jpg"
         let imageURL = NSURL( string: imageURLString )!
         
-        let imageTask = session.dataTaskWithURL( imageURL )
+        // var imageTask = NSURLSessionDataTask()
+        let imageTask = self.session.dataTaskWithURL( imageURL )
         {
             imageData, imageResponse, imageError in
             
             if imageError != nil
             {
-                return completionHandler(
+                completionHandler(
                     imageData: nil,
                     imageError: imageError
                 )
             }
             else
             {
-                return completionHandler(
+                completionHandler(
                     imageData: imageData,
                     imageError: nil
                 )
             }
         }
         imageTask.resume()
-        
-        return imageTask
     }
     
-    func getPhotoResults() -> [[ String : AnyObject ]]
-    {
-        return albumPhotos
-    }
+//    func getPhotoResults() -> [[ String : AnyObject ]]
+//    {
+//        return albumPhotos
+//    }
 }

@@ -239,71 +239,7 @@ class TravelMapViewController: UIViewController,
         )
         
         return newAnnotationView
-        
-        /*
-        var newAnnotationView: TravelMapAnnotationView?
-        do
-        {
-            newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
-        }
-        while newAnnotationView!.pinNumber != currentPin!.pinNumber
-        
-        if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
-        {
-            newAnnotationView.annotation = annotation
-            
-            return newAnnotationView
-        }
-        else
-        {
-            let newAnnotationView = TravelMapAnnotationView(annotation: annotation, reuseIdentifier: "mapPin" )
-            newAnnotationView.pinNumber = Pin.currentPinNumber
-            return newAnnotationView
-        }
-        */
     }
-    
-    /*
-    func mapView(
-        mapView: MKMapView!,
-        viewForAnnotation annotation: MKAnnotation!
-    ) -> MKAnnotationView!
-    {
-        // get an annotation to reuse, if available
-        if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
-        {
-            if let theAnnotation = Pin.getAnnotationForPinNumber( newAnnotationView.pinNumber )
-            {
-                newAnnotationView.annotation = theAnnotation
-                return newAnnotationView
-            }
-            else
-            {
-                // but don't throw an error if it was marked for reuse
-                if !TravelMapAnnotationView.reuseMe
-                {
-                    println( "There was an error with the Pin." )
-                }
-            }
-        }
-        // otherwise, create a new annotation
-        else
-        {
-            let newAnnotationView = TravelMapAnnotationView(
-                annotation: annotation,
-                reuseIdentifier: "mapPin"
-            )
-            
-            return newAnnotationView
-        }
-        
-        // backup annotation to use
-        return TravelMapAnnotationView(
-            annotation: annotation,
-            reuseIdentifier: "mapPin"
-        )
-    }
-    */
     
     func mapView(
         mapView: MKMapView!,

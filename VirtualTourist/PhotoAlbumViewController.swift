@@ -29,7 +29,14 @@ class PhotoAlbumViewController: UIViewController,
     
     var photoResults = [[ String : AnyObject ]?]()
     
-    var currentAlbum = [ UIImage? ]( count: 30, repeatedValue: nil )
+    var currentAlbum = [ UIImage? ]()
+    
+    var photoAlbum: [ UIImage ]?
+    
+    var firstTime: Bool = false
+    
+    var currentAlbumImageData = [ NSData ]()
+    var currentAlbumImages = [ UIImage? ]()
     
     override func viewDidLoad()
     {
@@ -56,30 +63,70 @@ class PhotoAlbumViewController: UIViewController,
         photoAlbumCollection.allowsMultipleSelection = true
         photoAlbumCollection.dataSource = self
         photoAlbumCollection.delegate = self
+        // photoAlbumCollection.registerClass(PhotoAlbumCell.self, forCellWithReuseIdentifier: "photoAlbumCell")
         
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
         
-        FlickrClient.sharedInstance().requestResultsForLocation( location )
+        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( self.location )
         {
-            photoResults, requestError in
+            success, zeroResults, photoAlbumError in
             
-            if requestError != nil
+            if photoAlbumError != nil
             {
-                println( "There was a problem requesting the photos from Flickr: \( requestError )" )
+                // TODO: turn this into an alert
+                println( "There was a problem requesting the photos from Flickr: \( photoAlbumError )" )
             }
             else
             {
-                self.photoResults = photoResults
-                
-                dispatch_async( dispatch_get_main_queue() )
+                if zeroResults
                 {
-                    self.photoAlbumCollection.reloadData()
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        self.photoAlbumCollection.hidden = true
+                        
+                        let alert = UIAlertController(
+                            title: "😓   😓   😓",
+                            message: "No one took any pictures at that location.",
+                            preferredStyle: UIAlertControllerStyle.Alert
+                        )
+                        
+                        let alertAction = UIAlertAction(
+                            title: "Keep Traveling",
+                            style: UIAlertActionStyle.Cancel
+                        )
+                        {
+                            action in
+                            
+                            let travelMap = self.presentingViewController as! TravelMapViewController
+                            travelMap.returningFromPhotoAlbum = true
+                            
+                            self.dismissViewControllerAnimated( true, completion: nil )
+                        }
+                        
+                        alert.addAction( alertAction )
+                        
+                        self.presentViewController(
+                            alert,
+                            animated: true,
+                            completion: nil
+                        )
+                    }
+                }
+                else
+                {
+                    self.currentAlbumImages = [ UIImage? ](
+                        count: FlickrClient.sharedInstance().currentAlbumPhotoInfo.count,
+                        repeatedValue: nil
+                    )
+                    
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        self.photoAlbumCollection.reloadData()
+                    }
                 }
             }
         }
-        
-        // println( FlickrClient.sharedInstance().getPhotoResults() )
     }
     
     // MARK: Set-up functions
@@ -194,70 +241,52 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        return 30
+        // return FlickrClient.sharedInstance().currentAlbumPhotoInfo.count
+        return self.currentAlbumImages.count
     }
     
+    // NOTE:
+    // logic inspired by http://natashatherobot.com/ios-how-to-download-images-asynchronously-make-uitableview-scroll-fast/
     func collectionView(
         collectionView: UICollectionView,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
-//        if self.photoResults != nil
-//        {
-//            println( "Getting URL \( self.photoResults![ indexPath.item ] )" )
-//        }
-
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
+        if let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
             "photoAlbumCell",
             forIndexPath: indexPath
-        ) as! PhotoAlbumCell
-        
-        // set the cell dimensions
-        cell.frame.size.width = ( collectionView.collectionViewLayout.collectionViewContentSize().width / 3 ) - 10
-        cell.frame.size.height = cell.frame.size.width
-        
-        // NOTE:
-        // trick taken from https://stackoverflow.com/questions/2638120/can-i-change-the-size-of-uiactivityindicator
-        cell.activityIndicator.transform = CGAffineTransformMakeScale( 1.5, 1.5 )
-        
-        // var imageTask = NSURLSessionDataTask
-        if photoResults.count != 0
+        ) as? PhotoAlbumCell
         {
-            if let imageInfo = photoResults[ indexPath.item ]
+            if let cellImage = currentAlbumImages[ indexPath.item ]
             {
-                if cell.imageTask != nil
+                cell.photoImageView.image = cellImage
+                
+                return cell
+            }
+            else
+            {
+                dispatch_async( dispatch_get_main_queue() )
                 {
-                    if let cellImage = self.currentAlbum[ indexPath.item ]
-                    {
-                        cell.photoImageView.image = self.currentAlbum[ indexPath.item ]
-                    }
+                    let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
                     
-                    return cell
-                }
-                else
-                {
-                    let imageTask = FlickrClient.sharedInstance().taskForImage( imageInfo )
+                    let imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
                     {
-                        imageData, imageError in
+                        imageData, imageResponse, imageError in
                         
-                        if imageError != nil
-                        {
-                            println( "There was an error retrieving the image from Flickr: \( imageError )" )
-                        }
-                        else
-                        {
-                            cell.photoImageView.image = UIImage( data: imageData! )
-                            self.currentAlbum[ indexPath.item ] = UIImage( data: imageData! )!
-                        }
+                        let cellImage = UIImage( data: imageData )
+                        
+                        cell.photoImageView.image = cellImage
+                        self.currentAlbumImages[ indexPath.item ] = cellImage
                     }
-                    
-                    cell.imageTask = imageTask
-                    
-                    return cell
+                    imageTask.resume()
                 }
+                
+                return cell
             }
         }
-        
-        return cell
+        else
+        {
+            return UICollectionViewCell( frame: CGRect( x: 0, y: 0, width: 125, height: 108 ) )
+        }
     }
 }

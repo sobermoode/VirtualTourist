@@ -14,8 +14,12 @@ class TravelMapAnnotationView: MKPinAnnotationView
     // this keeps track of the Pin on the map view
     var pinNumber: Int!
     
+    var pin: Pin!
+    
     // this prevents errors when reusing annotations
     static var reuseMe: Bool = false
+    
+    static var pinToReuse: Pin!
     
     override init!(
         annotation: MKAnnotation!,
@@ -28,6 +32,20 @@ class TravelMapAnnotationView: MKPinAnnotationView
         )
         
         self.pinNumber = Pin.getCurrentPinNumber()
+    }
+    
+    init( annotation: MKAnnotation!, reuseIdentifier: String!, pin: Pin )
+    {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        
+        self.pin = pin
+        self.pinNumber = Pin.getCurrentPinNumber()
+    }
+    
+    override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
+        println( "TravelMapAnnotation touchesBegan()" )
+        // println( "My pin is \( pin.pinName )" )
+        println( "My pin number is \( self.pinNumber )" )
     }
 
     required init( coder aDecoder: NSCoder )
@@ -43,6 +61,8 @@ class TravelMapAnnotationView: MKPinAnnotationView
     // tells the TravelMapViewController not to throw an error when looking for a cell to reuse
     override func prepareForReuse()
     {
+        println( "prepareForReuse()" )
+        TravelMapAnnotationView.pinToReuse = pin
         TravelMapAnnotationView.reuseMe = true
     }
     

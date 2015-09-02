@@ -40,6 +40,7 @@ class TravelMapViewController: UIViewController,
     var returningFromPhotoAlbum: Bool = false
     
     var currentPin: Pin?
+    var totalPins: Int = 0
     
     // MARK: Set-up functions
     
@@ -173,12 +174,14 @@ class TravelMapViewController: UIViewController,
                 
                 // create a Pin
                 let newPin = Pin( coordinate: mapCoordinate )
+                ++totalPins
                 currentPin = newPin
                 
                 // add the annotation to the map
                 // mapView.addAnnotation( newPin.mapPinView.annotation )
                 // mapView.addAnnotation( Pin.getAnnotationForPinNumber( newPin.pinNumber ) )
-                mapView.addAnnotation( newPin.pointAnnotation )
+                // mapView.addAnnotation( newPin.pointAnnotation )
+                mapView.addAnnotation( newPin )
             
                 return
             
@@ -207,9 +210,34 @@ class TravelMapViewController: UIViewController,
         viewForAnnotation annotation: MKAnnotation!
     ) -> MKAnnotationView!
     {
+        if let reusedAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? MKPinAnnotationView
+        {
+            println( "Reusing an annotation view..." )
+            let reusedAnnotation = annotation as! Pin
+            reusedAnnotationView.annotation = reusedAnnotation
+            // reusedAnnotationView.pin = TravelMapAnnotationView.pinToReuse
+            
+            return reusedAnnotationView
+        }
+        else
+        {
+            println( "Creating new annotation view..." )
+            let newAnnotation = annotation as! Pin
+            var newAnnotationView = MKPinAnnotationView(
+                annotation: annotation,
+                reuseIdentifier: "mapPin"
+            )
+            
+            // newAnnotationView.tag = ++totalPins
+            
+            return newAnnotationView
+        }
+        
+        /*
         // if there are annotations that have been recycled
         if TravelMapAnnotationView.reuseMe
         {
+            println( "Reusing an annotation view..." )
             // get the total number of dropped pins
             var totalPins: Int = Pin.currentPinNumber
             
@@ -232,13 +260,16 @@ class TravelMapViewController: UIViewController,
             }
         }
         
+        println( "Creating new annotation view..." )
         // if no match is found, create a new annotation view
         var newAnnotationView = TravelMapAnnotationView(
             annotation: annotation,
-            reuseIdentifier: "mapPin"
+            reuseIdentifier: "mapPin",
+            pin: currentPin!
         )
         
         return newAnnotationView
+        */
     }
     
     func mapView(
@@ -246,6 +277,10 @@ class TravelMapViewController: UIViewController,
         didSelectAnnotationView view: MKAnnotationView!
     )
     {
+        let selectedAnnotation: AnyObject = mapView.selectedAnnotations[ 0 ] // as! MKPointAnnotation
+        println( "selected \( selectedAnnotation )" )
+        
+        /*
         if !inEditMode
         {
             // get the coordinate to pass to the PhotoAlbumViewController
@@ -271,6 +306,7 @@ class TravelMapViewController: UIViewController,
             mapView.removeAnnotation( selectedPin.annotation )
             Pin.removePin( selectedPin.pinNumber )
         }
+        */
     }
     
     func mapView(

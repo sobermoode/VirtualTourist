@@ -9,7 +9,7 @@
 import UIKit
 import MapKit
 
-class Pin: NSObject
+class Pin: NSObject, MKAnnotation
 {
     // class properties
     static var droppedPins = [ Int : Pin ]()
@@ -24,10 +24,16 @@ class Pin: NSObject
     {
         return mapPinView.pinNumber
     }
+    /*
     var coordinate: CLLocationCoordinate2D
     {
-        return mapPinView.annotation.coordinate
+        // return mapPinView.annotation.coordinate
+        return CLLocationCoordinate2D(latitude: self.coordinate.latitude, longitude: self.coordinate.longitude)
     }
+    */
+    var coordinate: CLLocationCoordinate2D
+    
+    var pinName: String
     
     // TODO: uncomment after implementing the Photo class
     // var photoAlbum: [ Photo ]
@@ -37,11 +43,15 @@ class Pin: NSObject
         // update the current pin number
         ++Pin.currentPinNumber
         
+        self.coordinate = coordinate
+        
         // create an annotation
         // let newAnnotation = MKPointAnnotation()
         // newAnnotation.coordinate = coordinate
         self.pointAnnotation = MKPointAnnotation()
         self.pointAnnotation.coordinate = coordinate
+        
+        self.pinName = "Pin #\( Pin.currentPinNumber )"
         
         // create the pin view that will actually appear on the map
 //        self.mapPinView = TravelMapAnnotationView(

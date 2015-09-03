@@ -31,7 +31,7 @@ class TravelMapAnnotationView: MKPinAnnotationView
             reuseIdentifier: reuseIdentifier
         )
         
-        self.pinNumber = Pin.getCurrentPinNumber()
+        // self.pinNumber = Pin.getCurrentPinNumber()
     }
     
     init( annotation: MKAnnotation!, reuseIdentifier: String!, pin: Pin )
@@ -39,7 +39,7 @@ class TravelMapAnnotationView: MKPinAnnotationView
         super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
         
         self.pin = pin
-        self.pinNumber = Pin.getCurrentPinNumber()
+        // self.pinNumber = Pin.getCurrentPinNumber()
     }
     
     override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {

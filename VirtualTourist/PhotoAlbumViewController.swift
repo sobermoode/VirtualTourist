@@ -40,7 +40,7 @@ class PhotoAlbumViewController: UIViewController,
     
     override func viewDidLoad()
     {
-        println( "PhotoAlbum viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
+        // println( "PhotoAlbum viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
         
         super.viewDidLoad()
 
@@ -70,7 +70,7 @@ class PhotoAlbumViewController: UIViewController,
         
         FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location.coordinate )
         {
-            success, zeroResults, photoAlbumError in
+            photoAlbumInfo, zeroResults, photoAlbumError in
             
             if photoAlbumError != nil
             {
@@ -116,7 +116,7 @@ class PhotoAlbumViewController: UIViewController,
                 else
                 {
                     self.currentAlbumImages = [ UIImage? ](
-                        count: FlickrClient.sharedInstance().currentAlbumPhotoInfo.count,
+                        count: photoAlbumInfo!.count,
                         repeatedValue: nil
                     )
                     

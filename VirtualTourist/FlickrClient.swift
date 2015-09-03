@@ -64,7 +64,7 @@ class FlickrClient: NSObject
     // 
     func getNewPhotoAlbumForLocation(
         location: CLLocationCoordinate2D,
-        completionHandler: ( success: Bool, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
+        completionHandler: ( photoAlbumInfo: [ NSURL ]?, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
     )
     {
         // currentAlbumImageData.removeAll( keepCapacity: false )
@@ -78,7 +78,7 @@ class FlickrClient: NSObject
             if requestError != nil
             {
                 completionHandler(
-                    success: false,
+                    photoAlbumInfo: nil,
                     zeroResults: false,
                     photoAlbumError: requestError
                 )
@@ -88,7 +88,7 @@ class FlickrClient: NSObject
                 if self.currentAlbumPhotoInfo.isEmpty
                 {
                     completionHandler(
-                        success: true,
+                        photoAlbumInfo: nil,
                         zeroResults: true,
                         photoAlbumError: nil
                     )
@@ -96,7 +96,7 @@ class FlickrClient: NSObject
                 else
                 {
                     completionHandler(
-                        success: true,
+                        photoAlbumInfo: self.currentAlbumPhotoInfo,
                         zeroResults: false,
                         photoAlbumError: nil
                     )

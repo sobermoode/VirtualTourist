@@ -46,7 +46,7 @@ class TravelMapViewController: UIViewController,
     
     override func viewWillAppear( animated: Bool )
     {
-        println( "TravelMap viewWillAppear: There are \( Pin.getCurrentPinNumber() ) pins." )
+        // println( "TravelMap viewWillAppear: There are \( Pin.getCurrentPinNumber() ) pins." )
         
         if !returningFromPhotoAlbum
         {
@@ -76,7 +76,7 @@ class TravelMapViewController: UIViewController,
     
     override func viewDidLoad()
     {
-        println( "TravelMap viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
+        // println( "TravelMap viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
         
         super.viewDidLoad()
 

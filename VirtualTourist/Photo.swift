@@ -11,7 +11,6 @@ import UIKit
 class Photo: NSObject
 {
     var pin: Pin!
-    
     var image: UIImage!
     
     init( pin: Pin, imageData: NSData )

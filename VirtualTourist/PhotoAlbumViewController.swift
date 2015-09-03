@@ -52,58 +52,32 @@ class PhotoAlbumViewController: UIViewController,
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
         
-        // initiate the Flickr request for the photo album
-        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location.coordinate )
+        // don't make a request for a new album if we're revisiting an album
+        if location.photoAlbum != nil
         {
-            photoAlbumInfo, zeroResults, photoAlbumError in
-            
-            // there was an error somewhere along the way
-            if photoAlbumError != nil
+            // we already have an album, so reload the collection view
+            dispatch_async( dispatch_get_main_queue() )
             {
-                dispatch_async( dispatch_get_main_queue() )
-                {
-                    self.photoAlbumCollection.hidden = true
-                    
-                    let alert = UIAlertController(
-                        title: "There was an error requesting the photos from Flickr:",
-                        message: "\( photoAlbumError )",
-                        preferredStyle: UIAlertControllerStyle.Alert
-                    )
-                    
-                    let alertAction = UIAlertAction(
-                        title: "Keep Traveling",
-                        style: UIAlertActionStyle.Cancel
-                    )
-                    {
-                        action in
-                        
-                        let travelMap = self.presentingViewController as! TravelMapViewController
-                        travelMap.returningFromPhotoAlbum = true
-                        
-                        self.dismissViewControllerAnimated( true, completion: nil )
-                    }
-                    
-                    alert.addAction( alertAction )
-                    
-                    self.presentViewController(
-                        alert,
-                        animated: true,
-                        completion: nil
-                    )
-                }
+                self.photoAlbumCollection.reloadData()
             }
-            else
+        }
+        else
+        {
+            // initiate the Flickr request for the photo album
+            FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location.coordinate )
             {
-                // nobody took any pictures there
-                if zeroResults
+                photoAlbumInfo, zeroResults, photoAlbumError in
+                
+                // there was an error somewhere along the way
+                if photoAlbumError != nil
                 {
                     dispatch_async( dispatch_get_main_queue() )
                     {
                         self.photoAlbumCollection.hidden = true
                         
                         let alert = UIAlertController(
-                            title: "😓   😓   😓",
-                            message: "No one took any pictures at that location.",
+                            title: "There was an error requesting the photos from Flickr:",
+                            message: "\( photoAlbumError )",
                             preferredStyle: UIAlertControllerStyle.Alert
                         )
                         
@@ -131,22 +105,58 @@ class PhotoAlbumViewController: UIViewController,
                 }
                 else
                 {
-                    // we've got a photo album!
-                    // save the info to construct URLs to images and populate the array of current images to nil
-                    self.currentAlbumInfo = photoAlbumInfo!
-//                    self.currentAlbumImages = [ UIImage? ](
-//                        count: photoAlbumInfo!.count,
-//                        repeatedValue: nil
-//                    )
-                    self.location.photoAlbum = [ Photo? ](
-                        count: photoAlbumInfo!.count,
-                        repeatedValue: nil
-                    )
-                    
-                    // reload the collection view
-                    dispatch_async( dispatch_get_main_queue() )
+                    // nobody took any pictures there
+                    if zeroResults
                     {
-                        self.photoAlbumCollection.reloadData()
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            self.photoAlbumCollection.hidden = true
+                            
+                            let alert = UIAlertController(
+                                title: "😓   😓   😓",
+                                message: "No one took any pictures at that location.",
+                                preferredStyle: UIAlertControllerStyle.Alert
+                            )
+                            
+                            let alertAction = UIAlertAction(
+                                title: "Keep Traveling",
+                                style: UIAlertActionStyle.Cancel
+                            )
+                            {
+                                action in
+                                
+                                let travelMap = self.presentingViewController as! TravelMapViewController
+                                travelMap.returningFromPhotoAlbum = true
+                                
+                                self.dismissViewControllerAnimated( true, completion: nil )
+                            }
+                            
+                            alert.addAction( alertAction )
+                            
+                            self.presentViewController(
+                                alert,
+                                animated: true,
+                                completion: nil
+                            )
+                        }
+                    }
+                    else
+                    {
+                        // we've got a photo album!
+                        // save the info to construct URLs to images and populate the array of current images to nil
+                        self.currentAlbumInfo = photoAlbumInfo!
+                        
+                        // initialize the Pin's photo album
+                        self.location.photoAlbum = [ Photo? ](
+                            count: photoAlbumInfo!.count,
+                            repeatedValue: nil
+                        )
+                        
+                        // reload the collection view
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            self.photoAlbumCollection.reloadData()
+                        }
                     }
                 }
             }
@@ -239,7 +249,15 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        return self.location.photoAlbum.count
+        // make sure we've got a photo album to populate the collection view with
+        if let theCount = self.location.photoAlbum?.count
+        {
+            return theCount
+        }
+        else
+        {
+            return 0
+        }
     }
     
     // NOTE:
@@ -256,7 +274,7 @@ class PhotoAlbumViewController: UIViewController,
         ) as? PhotoAlbumCell
         {
             // use the already-downloaded image, if it exists
-            if let cellImage = location.photoAlbum[ indexPath.item ]
+            if let cellImage = location.photoAlbum![ indexPath.item ]
             {
                 dispatch_async( dispatch_get_main_queue() )
                 {
@@ -321,7 +339,7 @@ class PhotoAlbumViewController: UIViewController,
                             dispatch_async( dispatch_get_main_queue() )
                             {
                                 cell.photoImageView.image = cellPhoto.image
-                                self.location.photoAlbum[ indexPath.item ] = cellPhoto
+                                self.location.photoAlbum![ indexPath.item ] = cellPhoto
                             }
                         }
                     }

@@ -24,7 +24,7 @@ class PhotoAlbumViewController: UIViewController,
     
     // collections for the current photo album
     var currentAlbumInfo = [ NSURL ]()
-    var currentAlbumImages = [ UIImage? ]()
+    // var currentAlbumImages = [ UIImage? ]()
     
     override func viewDidLoad()
     {
@@ -134,7 +134,11 @@ class PhotoAlbumViewController: UIViewController,
                     // we've got a photo album!
                     // save the info to construct URLs to images and populate the array of current images to nil
                     self.currentAlbumInfo = photoAlbumInfo!
-                    self.currentAlbumImages = [ UIImage? ](
+//                    self.currentAlbumImages = [ UIImage? ](
+//                        count: photoAlbumInfo!.count,
+//                        repeatedValue: nil
+//                    )
+                    self.location.photoAlbum = [ Photo? ](
                         count: photoAlbumInfo!.count,
                         repeatedValue: nil
                     )
@@ -235,7 +239,7 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        return self.currentAlbumImages.count
+        return self.location.photoAlbum.count
     }
     
     // NOTE:
@@ -252,11 +256,11 @@ class PhotoAlbumViewController: UIViewController,
         ) as? PhotoAlbumCell
         {
             // use the already-downloaded image, if it exists
-            if let cellImage = currentAlbumImages[ indexPath.item ]
+            if let cellImage = location.photoAlbum[ indexPath.item ]
             {
                 dispatch_async( dispatch_get_main_queue() )
                 {
-                    cell.photoImageView.image = cellImage
+                    cell.photoImageView.image = cellImage.image
                 }
                 
                 return cell
@@ -307,13 +311,17 @@ class PhotoAlbumViewController: UIViewController,
                         else
                         {
                             // create the cell image with the downloaded data
-                            let cellImage = UIImage( data: imageData! )
+                            // let cellImage = UIImage( data: imageData! )
+                            let cellPhoto = Photo(
+                                pin: self.location,
+                                imageData: imageData!
+                            )
                             
                             // set the cell and save the image to the local cache
                             dispatch_async( dispatch_get_main_queue() )
                             {
-                                cell.photoImageView.image = cellImage
-                                self.currentAlbumImages[ indexPath.item ] = cellImage
+                                cell.photoImageView.image = cellPhoto.image
+                                self.location.photoAlbum[ indexPath.item ] = cellPhoto
                             }
                         }
                     }

@@ -19,8 +19,7 @@ class Pin: NSObject, MKAnnotation
     var pinNumber: Int
     var coordinate: CLLocationCoordinate2D
     
-    // TODO: uncomment after implementing the Photo class
-    // var photoAlbum: [ Photo ]
+    var photoAlbum = [ Photo? ]()
     
     init( coordinate: CLLocationCoordinate2D )
     {

@@ -16,19 +16,17 @@ class FlickrClient: NSObject
     
     // the location to use when querying Flickr for images
     var location: CLLocationCoordinate2D!
-    // var destination: Pin!
     
-    // holder collections
-    // var currentAlbumPhotoInfo = [[ String : AnyObject ]]()
+    // holder collection
     var currentAlbumPhotoInfo = [ NSURL ]()
-    // var currentAlbumImageData = [ NSData ]()
-    // var albumImages: [ UIImage? ]?
-    // var currentAlbumImages = [ UIImage ]()
     
-    // var currentDestinationID: Int16!
+    // might still need this to cache photo albums returned in the current session,
+    // to prevent another query to Flickr for the same set of pictures,
+    // because they won't be fetched from Core Data
     var albumForDestinationID = [ Int16 : AnyObject ]()
     
     // max size of the photo album
+    // (use to configure the collection view in the PhotoAlbumViewController)
     var maxImagesToShow: Int = 30
     
     // NOTE:
@@ -62,34 +60,38 @@ class FlickrClient: NSObject
         return NSURL( string: queryString )!
     }
     
+    // queries Flickr for a set of images at the current location;
+    // returns an array of URLs for the PhotoAlbumViewController to use to populate the collection view,
+    // or a flag that there weren't any results, or the error details, if one occurs
     func getNewPhotoAlbumForLocation(
         location: CLLocationCoordinate2D,
-        completionHandler: ( success: Bool, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
+        completionHandler: ( photoAlbumInfo: [ NSURL ]?, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
     )
     {
-        // currentAlbumImageData.removeAll( keepCapacity: false )
+        // blank the current set of URL info
         currentAlbumPhotoInfo.removeAll( keepCapacity: false )
-        // currentAlbumImages.removeAll( keepCapacity: false )
         
+        // make the initial request
         requestResultsForLocation( location )
         {
             success, requestError in
             
+            // some kind of error occurred
             if requestError != nil
             {
                 completionHandler(
-                    success: false,
+                    photoAlbumInfo: nil,
                     zeroResults: false,
                     photoAlbumError: requestError
                 )
             }
             else if success
             {
+                // the request was successful, but there weren't any pictures taken at that location
                 if self.currentAlbumPhotoInfo.isEmpty
                 {
-                    println( "Zero results..." )
                     completionHandler(
-                        success: true,
+                        photoAlbumInfo: nil,
                         zeroResults: true,
                         photoAlbumError: nil
                     )
@@ -97,7 +99,7 @@ class FlickrClient: NSObject
                 else
                 {
                     completionHandler(
-                        success: true,
+                        photoAlbumInfo: self.currentAlbumPhotoInfo,
                         zeroResults: false,
                         photoAlbumError: nil
                     )
@@ -111,19 +113,17 @@ class FlickrClient: NSObject
         completionHandler: ( success: Bool, requestError: NSError! ) -> Void
     )
     {
-        println( "requestResultsForDestination..." )
-        
-        // var photoInfo = [ [ String : AnyObject ] ]()
-        // var imageResults: [ UIImage ]?
-        
+        // create the URL to query Flickr with
         let requestURL = createQueryURL( location )
         
+        // create the data task
         let requestTask = self.session.dataTaskWithURL( requestURL )
         {
             requestData, requestResponse, requestError in
             
             if requestError != nil
             {
+                // pass the error up the chain
                 completionHandler(
                     success: false,
                     requestError: requestError
@@ -131,6 +131,7 @@ class FlickrClient: NSObject
             }
             else
             {
+                // parse the results
                 var jsonificationError: NSErrorPointer = nil
                 if let requestResults = NSJSONSerialization.JSONObjectWithData(
                     requestData,
@@ -138,15 +139,16 @@ class FlickrClient: NSObject
                     error: jsonificationError
                 ) as? [ String : AnyObject ]
                 {
-                    // println( "Parsing results from Flickr..." )
-                    // println( "requestResults: \( requestResults )" )
+                    // get at the array of dictionaries that contain the info for constructing URLs to images
                     let photos = requestResults[ "photos" ] as! [ String : AnyObject ]
                     let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
                     
-                    // var photoResults = [[ String : AnyObject ]?]()
-                    println( "photoArray.count: \( photoArray.count )" )
+                    // if there are results to work with, create a set to return to the PhotoAlbumViewController
+                    // if there are no results, the zeroResults flag will get sent, instead
                     if photoArray.count != 0
                     {
+                        // take a sub-section of the result set, as set above
+                        // set the counter to zero if there is only one result, to avoid array index out-of-bounds error
                         var resultCounter: Int
                         if photoArray.count == 1
                         {
@@ -155,27 +157,24 @@ class FlickrClient: NSObject
                         else
                         {
                             resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count - 1
-                            println( "resultCounter: \( resultCounter )" )
                         }
-                        
-                        // let photoRange = NSMakeRange(0, resultCounter)
-                        // let photoIndices = NSIndexSet(indexesInRange: photoRange)
                         
                         // strange casting here;
                         // since taking a sub-section of an array returns a Slice (a pointer into an array, not a new array),
                         // and which is itself a type, i had to cast the Slice into the type i actually want to use
                         // check out https://stackoverflow.com/questions/24073269/what-is-a-slice-in-swift for more
-                        let albumInfos = [ [ String : AnyObject ] ]( photoArray[ 0...resultCounter ] )
+                        let albumInfos = [[ String : AnyObject ]]( photoArray[ 0...resultCounter ] )
                         
+                        // create a URL from the info in each dictionary
+                        // and append it to the current set
                         for photoInfoDictionary in albumInfos
                         {
                             let imageURL = self.urlForImageInfo( photoInfoDictionary )
                             self.currentAlbumPhotoInfo.append( imageURL )
-                            // let imageData = NSData( contentsOfURL: imageURL )!
-                            // self.currentAlbumImageData.append( imageData )
                         }
                     }
                     
+                    // whew, success!!!
                     completionHandler(
                         success: true,
                         requestError: nil
@@ -183,6 +182,8 @@ class FlickrClient: NSObject
                 }
                 else
                 {
+                    // if the JSON-ification of the results from Flickr failed, somehow,
+                    // create an error to send back up the chain
                     let errorDictionary = [ NSLocalizedDescriptionKey : "There was an error with the request results from Flickr." ]
                     let requestError = NSError(
                         domain: "Virtual Tourist",
@@ -200,6 +201,7 @@ class FlickrClient: NSObject
         requestTask.resume()
     }
     
+    // creates an NSURL to an actual image from an info dictionary returned from Flickr
     func urlForImageInfo( imageInfo: [ String : AnyObject ] ) -> NSURL!
     {
         let farmID = imageInfo[ "farm" ] as! Int
@@ -212,21 +214,13 @@ class FlickrClient: NSObject
         return NSURL( string: imageURLString )!
     }
     
+    // task for downloading an image from Flickr
     func taskForImage(
-        imageInfo: [ String : AnyObject ],
+        imageURL: NSURL,
         completionHandler: ( imageData: NSData?, imageError: NSError? ) -> Void
     )
     {
-        let farmID = imageInfo[ "farm" ] as! Int
-        let serverID = imageInfo[ "server" ] as! String
-        let photoID = imageInfo[ "id" ] as! String
-        let secret = imageInfo[ "secret" ] as! String
-        
-        let imageURLString = "https://farm\( farmID ).staticflickr.com/\( serverID )/\( photoID )_\( secret ).jpg"
-        let imageURL = NSURL( string: imageURLString )!
-        
-        // var imageTask = NSURLSessionDataTask()
-        let imageTask = self.session.dataTaskWithURL( imageURL )
+        let imageTask = session.dataTaskWithURL( imageURL )
         {
             imageData, imageResponse, imageError in
             
@@ -247,9 +241,4 @@ class FlickrClient: NSObject
         }
         imageTask.resume()
     }
-    
-//    func getPhotoResults() -> [[ String : AnyObject ]]
-//    {
-//        return albumPhotos
-//    }
 }

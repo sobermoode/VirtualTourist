@@ -20,33 +20,17 @@ class PhotoAlbumViewController: UIViewController,
     @IBOutlet weak var photoAlbumCollection: UICollectionView!
     
     // the location selected from the travel map
-    // var location: Pin!
-//    var location = CLLocationCoordinate2D(
-//        latitude: 33.862237,
-//        longitude: -118.399519
-//    )
-    var location: CLLocationCoordinate2D!
+    var location: Pin!
     
-    var photoResults = [[ String : AnyObject ]?]()
-    
-    var currentAlbum = [ UIImage? ]()
-    
-    var photoAlbum: [ UIImage ]?
-    
-    var firstTime: Bool = false
-    
-    var currentAlbumImageData = [ NSData ]()
+    // collections for the current photo album
+    var currentAlbumInfo = [ NSURL ]()
     var currentAlbumImages = [ UIImage? ]()
     
     override func viewDidLoad()
     {
-        println( "PhotoAlbum viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
-        
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-        
-        // println( "location.pinNumber: \( location.pinNumber )" )
         
         // set up views
         setUpNavBar()
@@ -63,22 +47,54 @@ class PhotoAlbumViewController: UIViewController,
         photoAlbumCollection.allowsMultipleSelection = true
         photoAlbumCollection.dataSource = self
         photoAlbumCollection.delegate = self
-        // photoAlbumCollection.registerClass(PhotoAlbumCell.self, forCellWithReuseIdentifier: "photoAlbumCell")
         
+        // TODO: remove the label
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
         
-        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( self.location )
+        // initiate the Flickr request for the photo album
+        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location.coordinate )
         {
-            success, zeroResults, photoAlbumError in
+            photoAlbumInfo, zeroResults, photoAlbumError in
             
+            // there was an error somewhere along the way
             if photoAlbumError != nil
             {
-                // TODO: turn this into an alert
-                println( "There was a problem requesting the photos from Flickr: \( photoAlbumError )" )
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    self.photoAlbumCollection.hidden = true
+                    
+                    let alert = UIAlertController(
+                        title: "There was an error requesting the photos from Flickr:",
+                        message: "\( photoAlbumError )",
+                        preferredStyle: UIAlertControllerStyle.Alert
+                    )
+                    
+                    let alertAction = UIAlertAction(
+                        title: "Keep Traveling",
+                        style: UIAlertActionStyle.Cancel
+                    )
+                    {
+                        action in
+                        
+                        let travelMap = self.presentingViewController as! TravelMapViewController
+                        travelMap.returningFromPhotoAlbum = true
+                        
+                        self.dismissViewControllerAnimated( true, completion: nil )
+                    }
+                    
+                    alert.addAction( alertAction )
+                    
+                    self.presentViewController(
+                        alert,
+                        animated: true,
+                        completion: nil
+                    )
+                }
             }
             else
             {
+                // nobody took any pictures there
                 if zeroResults
                 {
                     dispatch_async( dispatch_get_main_queue() )
@@ -115,11 +131,15 @@ class PhotoAlbumViewController: UIViewController,
                 }
                 else
                 {
+                    // we've got a photo album!
+                    // save the info to construct URLs to images and populate the array of current images to nil
+                    self.currentAlbumInfo = photoAlbumInfo!
                     self.currentAlbumImages = [ UIImage? ](
-                        count: FlickrClient.sharedInstance().currentAlbumPhotoInfo.count,
+                        count: photoAlbumInfo!.count,
                         repeatedValue: nil
                     )
                     
+                    // reload the collection view
                     dispatch_async( dispatch_get_main_queue() )
                     {
                         self.photoAlbumCollection.reloadData()
@@ -131,6 +151,7 @@ class PhotoAlbumViewController: UIViewController,
     
     // MARK: Set-up functions
     
+    // create the nav bar
     func setUpNavBar()
     {
         var navItem = UINavigationItem( title: "Photo Album" )
@@ -149,28 +170,19 @@ class PhotoAlbumViewController: UIViewController,
     
     func setUpMap()
     {
-//        let defaultRegion = MKCoordinateRegion(
-//            center: location,
-//            span: MKCoordinateSpan(
-//                latitudeDelta: 3.0,
-//                longitudeDelta: 3.0
-//            )
-//        )
-//        
-//        mapView.region = defaultRegion
-        
+        // center the map on the location where the user dropped the pin and zoom in
         mapView.region = MKCoordinateRegion(
-            center: location,
+            center: location.coordinate,
             span: MKCoordinateSpan(
                 latitudeDelta: 0.1,
                 longitudeDelta: 0.1
             )
         )
         
-//        let locationAnnotation = MKPointAnnotation()
-//        locationAnnotation.coordinate = location
-//        
-//         mapView.addAnnotation( Pin.getAnnotationForPinNumber( location.pinNumber ) )
+        // drop a pin in the same location
+        let pin = MKPointAnnotation()
+        pin.coordinate = location.coordinate
+        mapView.addAnnotation( pin )
     }
     
     // MARK: Button functions
@@ -194,39 +206,21 @@ class PhotoAlbumViewController: UIViewController,
         viewForAnnotation annotation: MKAnnotation!
         ) -> MKAnnotationView!
     {
-        // get an annotation to reuse, if available
-        if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
+        if let reusedAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "photoAlbumPin" ) as? MKPinAnnotationView
         {
-            if let theAnnotation = Pin.getAnnotationForPinNumber( newAnnotationView.pinNumber )
-            {
-                newAnnotationView.annotation = theAnnotation
-                return newAnnotationView
-            }
-            else
-            {
-                // but don't throw an error if it was marked for reuse
-                if !TravelMapAnnotationView.reuseMe
-                {
-                    println( "There was an error with the Pin." )
-                }
-            }
+            reusedAnnotationView.annotation = annotation
+            
+            return reusedAnnotationView
         }
-            // otherwise, create a new annotation
         else
         {
-            let newAnnotationView = TravelMapAnnotationView(
+            var newAnnotationView = MKPinAnnotationView(
                 annotation: annotation,
-                reuseIdentifier: "mapPin"
+                reuseIdentifier: "photoAlbumPin"
             )
             
             return newAnnotationView
         }
-        
-        // backup annotation to use
-        return TravelMapAnnotationView(
-            annotation: annotation,
-            reuseIdentifier: "mapPin"
-        )
     }
     
     // MARK: UICollectionViewDataSource, UICollectionViewDelegate functions
@@ -241,7 +235,6 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        // return FlickrClient.sharedInstance().currentAlbumPhotoInfo.count
         return self.currentAlbumImages.count
     }
     
@@ -252,33 +245,78 @@ class PhotoAlbumViewController: UIViewController,
         cellForItemAtIndexPath indexPath: NSIndexPath
     ) -> UICollectionViewCell
     {
+        // dequeue a cell
         if let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
             "photoAlbumCell",
             forIndexPath: indexPath
         ) as? PhotoAlbumCell
         {
+            // use the already-downloaded image, if it exists
             if let cellImage = currentAlbumImages[ indexPath.item ]
             {
-                cell.photoImageView.image = cellImage
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    cell.photoImageView.image = cellImage
+                }
                 
                 return cell
             }
             else
             {
+                // download the image for the cell, if necessary
                 dispatch_async( dispatch_get_main_queue() )
                 {
-                    let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
+                    // get the URL for the cell
+                    let imageURL = self.currentAlbumInfo[ indexPath.item ]
                     
-                    let imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
+                    // start the image task
+                    FlickrClient.sharedInstance().taskForImage( imageURL )
                     {
-                        imageData, imageResponse, imageError in
+                        imageData, imageError in
                         
-                        let cellImage = UIImage( data: imageData )
-                        
-                        cell.photoImageView.image = cellImage
-                        self.currentAlbumImages[ indexPath.item ] = cellImage
+                        // an error happened
+                        if imageError != nil
+                        {
+                            dispatch_async( dispatch_get_main_queue() )
+                            {
+                                let alert = UIAlertController(
+                                    title: "There was an error getting the image for cell \( indexPath.item ):",
+                                    message: "\( imageError )",
+                                    preferredStyle: UIAlertControllerStyle.Alert
+                                )
+                                
+                                let alertAction = UIAlertAction(
+                                    title: "😓   😓   😓",
+                                    style: UIAlertActionStyle.Cancel
+                                )
+                                {
+                                    action in
+                                    
+                                    return
+                                }
+                                
+                                alert.addAction( alertAction )
+                                
+                                self.presentViewController(
+                                    alert,
+                                    animated: true,
+                                    completion: nil
+                                )
+                            }
+                        }
+                        else
+                        {
+                            // create the cell image with the downloaded data
+                            let cellImage = UIImage( data: imageData! )
+                            
+                            // set the cell and save the image to the local cache
+                            dispatch_async( dispatch_get_main_queue() )
+                            {
+                                cell.photoImageView.image = cellImage
+                                self.currentAlbumImages[ indexPath.item ] = cellImage
+                            }
+                        }
                     }
-                    imageTask.resume()
                 }
                 
                 return cell

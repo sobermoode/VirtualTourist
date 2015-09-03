@@ -17,7 +17,6 @@
 		81ADBCFE1B82EB400028E1C8 /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBCFD1B82EB400028E1C8 /* Pin.swift */; };
 		81ADBD001B82F00D0028E1C8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81ADBCFF1B82F00D0028E1C8 /* Main.storyboard */; };
 		81ADBD041B8381750028E1C8 /* TravelMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBD031B8381750028E1C8 /* TravelMapViewController.swift */; };
-		81ADBD061B83F55D0028E1C8 /* TravelMapAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBD051B83F55D0028E1C8 /* TravelMapAnnotationView.swift */; };
 		81ADBD081B8539620028E1C8 /* PhotoAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBD071B8539620028E1C8 /* PhotoAlbumViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -46,7 +45,6 @@
 		81ADBCFD1B82EB400028E1C8 /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
 		81ADBCFF1B82F00D0028E1C8 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		81ADBD031B8381750028E1C8 /* TravelMapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TravelMapViewController.swift; path = ../TravelMapViewController.swift; sourceTree = "<group>"; };
-		81ADBD051B83F55D0028E1C8 /* TravelMapAnnotationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TravelMapAnnotationView.swift; sourceTree = "<group>"; };
 		81ADBD071B8539620028E1C8 /* PhotoAlbumViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -97,7 +95,6 @@
 				81ADBCFD1B82EB400028E1C8 /* Pin.swift */,
 				8161D20D1B867E230090A108 /* FlickrClient.swift */,
 				81ADBD031B8381750028E1C8 /* TravelMapViewController.swift */,
-				81ADBD051B83F55D0028E1C8 /* TravelMapAnnotationView.swift */,
 				81ADBD071B8539620028E1C8 /* PhotoAlbumViewController.swift */,
 				8161D20B1B8627590090A108 /* PhotoAlbumCell.swift */,
 				81ADBCD81B82EABA0028E1C8 /* Supporting Files */,
@@ -232,7 +229,6 @@
 			files = (
 				81ADBCFE1B82EB400028E1C8 /* Pin.swift in Sources */,
 				81ADBCDE1B82EABA0028E1C8 /* VirtualTourist.xcdatamodeld in Sources */,
-				81ADBD061B83F55D0028E1C8 /* TravelMapAnnotationView.swift in Sources */,
 				81ADBCDB1B82EABA0028E1C8 /* AppDelegate.swift in Sources */,
 				81ADBD041B8381750028E1C8 /* TravelMapViewController.swift in Sources */,
 				81ADBD081B8539620028E1C8 /* PhotoAlbumViewController.swift in Sources */,

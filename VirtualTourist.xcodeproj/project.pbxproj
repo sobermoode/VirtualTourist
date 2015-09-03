@@ -18,6 +18,7 @@
 		81ADBD001B82F00D0028E1C8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81ADBCFF1B82F00D0028E1C8 /* Main.storyboard */; };
 		81ADBD041B8381750028E1C8 /* TravelMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBD031B8381750028E1C8 /* TravelMapViewController.swift */; };
 		81ADBD081B8539620028E1C8 /* PhotoAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81ADBD071B8539620028E1C8 /* PhotoAlbumViewController.swift */; };
+		81BD3BEE1B97FF8C00B4CF3B /* Photo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81BD3BED1B97FF8C00B4CF3B /* Photo.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 		81ADBCFF1B82F00D0028E1C8 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		81ADBD031B8381750028E1C8 /* TravelMapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TravelMapViewController.swift; path = ../TravelMapViewController.swift; sourceTree = "<group>"; };
 		81ADBD071B8539620028E1C8 /* PhotoAlbumViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoAlbumViewController.swift; sourceTree = "<group>"; };
+		81BD3BED1B97FF8C00B4CF3B /* Photo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Photo.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +95,7 @@
 				81ADBCDC1B82EABA0028E1C8 /* VirtualTourist.xcdatamodeld */,
 				81ADBCFF1B82F00D0028E1C8 /* Main.storyboard */,
 				81ADBCFD1B82EB400028E1C8 /* Pin.swift */,
+				81BD3BED1B97FF8C00B4CF3B /* Photo.swift */,
 				8161D20D1B867E230090A108 /* FlickrClient.swift */,
 				81ADBD031B8381750028E1C8 /* TravelMapViewController.swift */,
 				81ADBD071B8539620028E1C8 /* PhotoAlbumViewController.swift */,
@@ -227,6 +230,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				81BD3BEE1B97FF8C00B4CF3B /* Photo.swift in Sources */,
 				81ADBCFE1B82EB400028E1C8 /* Pin.swift in Sources */,
 				81ADBCDE1B82EABA0028E1C8 /* VirtualTourist.xcdatamodeld in Sources */,
 				81ADBCDB1B82EABA0028E1C8 /* AppDelegate.swift in Sources */,

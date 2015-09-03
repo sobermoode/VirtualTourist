@@ -277,18 +277,18 @@ class TravelMapViewController: UIViewController,
         didSelectAnnotationView view: MKAnnotationView!
     )
     {
-        let selectedAnnotation: AnyObject = mapView.selectedAnnotations[ 0 ] // as! MKPointAnnotation
-        println( "selected \( selectedAnnotation )" )
+        // let selectedAnnotation: AnyObject = mapView.selectedAnnotations[ 0 ] // as! MKPointAnnotation
+        // println( "selected \( selectedAnnotation )" )
+        let thePin = view.annotation as! Pin
         
-        /*
         if !inEditMode
         {
             // get the coordinate to pass to the PhotoAlbumViewController
-            let theCoordinate = view.annotation.coordinate
+            // let theCoordinate = view.annotation.coordinate
             
             // segue to the photo album
             let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
-            photoAlbum.location = theCoordinate
+            photoAlbum.location = thePin
             
             presentViewController(
                 photoAlbum,
@@ -299,14 +299,13 @@ class TravelMapViewController: UIViewController,
         else
         {
             // get the selected pin
-            let selectedPin = view as! TravelMapAnnotationView
+            // let selectedPin = view as! TravelMapAnnotationView
             
             // remove the selected pin from the map,
             // remove the Pin from the model
-            mapView.removeAnnotation( selectedPin.annotation )
-            Pin.removePin( selectedPin.pinNumber )
+            Pin.removePin( thePin.pinNumber )
+            mapView.removeAnnotation( thePin )
         }
-        */
     }
     
     func mapView(

@@ -20,12 +20,12 @@ class PhotoAlbumViewController: UIViewController,
     @IBOutlet weak var photoAlbumCollection: UICollectionView!
     
     // the location selected from the travel map
-    // var location: Pin!
+    var location: Pin!
 //    var location = CLLocationCoordinate2D(
 //        latitude: 33.862237,
 //        longitude: -118.399519
 //    )
-    var location: CLLocationCoordinate2D!
+    // var location: CLLocationCoordinate2D!
     
     var photoResults = [[ String : AnyObject ]?]()
     
@@ -68,7 +68,7 @@ class PhotoAlbumViewController: UIViewController,
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
         
-        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( self.location )
+        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location.coordinate )
         {
             success, zeroResults, photoAlbumError in
             
@@ -160,7 +160,7 @@ class PhotoAlbumViewController: UIViewController,
 //        mapView.region = defaultRegion
         
         mapView.region = MKCoordinateRegion(
-            center: location,
+            center: location.coordinate,
             span: MKCoordinateSpan(
                 latitudeDelta: 0.1,
                 longitudeDelta: 0.1
@@ -194,39 +194,28 @@ class PhotoAlbumViewController: UIViewController,
         viewForAnnotation annotation: MKAnnotation!
         ) -> MKAnnotationView!
     {
-        // get an annotation to reuse, if available
-        if let newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? TravelMapAnnotationView
+        if let reusedAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? MKPinAnnotationView
         {
-            if let theAnnotation = Pin.getAnnotationForPinNumber( newAnnotationView.pinNumber )
-            {
-                newAnnotationView.annotation = theAnnotation
-                return newAnnotationView
-            }
-            else
-            {
-                // but don't throw an error if it was marked for reuse
-                if !TravelMapAnnotationView.reuseMe
-                {
-                    println( "There was an error with the Pin." )
-                }
-            }
+            println( "Reusing an annotation view..." )
+            let reusedAnnotation = annotation as! Pin
+            reusedAnnotationView.annotation = reusedAnnotation
+            // reusedAnnotationView.pin = TravelMapAnnotationView.pinToReuse
+            
+            return reusedAnnotationView
         }
-            // otherwise, create a new annotation
         else
         {
-            let newAnnotationView = TravelMapAnnotationView(
+            println( "Creating new annotation view..." )
+            let newAnnotation = annotation as! Pin
+            var newAnnotationView = MKPinAnnotationView(
                 annotation: annotation,
                 reuseIdentifier: "mapPin"
             )
             
+            // newAnnotationView.tag = ++totalPins
+            
             return newAnnotationView
         }
-        
-        // backup annotation to use
-        return TravelMapAnnotationView(
-            annotation: annotation,
-            reuseIdentifier: "mapPin"
-        )
     }
     
     // MARK: UICollectionViewDataSource, UICollectionViewDelegate functions

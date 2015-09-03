@@ -17,20 +17,10 @@ class Pin: NSObject, MKAnnotation
     static var currentPinNumber: Int = 0
     
     // instance properties
-    var pointAnnotation: MKPointAnnotation
-    var mapPinView: TravelMapAnnotationView!
-    // TODO: make sure these computed properties are ever actually needed anywhere in the project
-    var pinNumber: Int!
-    {
-        return mapPinView.pinNumber
-    }
-    /*
-    var coordinate: CLLocationCoordinate2D
-    {
-        // return mapPinView.annotation.coordinate
-        return CLLocationCoordinate2D(latitude: self.coordinate.latitude, longitude: self.coordinate.longitude)
-    }
-    */
+    // var pointAnnotation: MKPointAnnotation
+    // var mapPinView: TravelMapAnnotationView!
+    
+    var pinNumber: Int
     var coordinate: CLLocationCoordinate2D
     
     var pinName: String
@@ -43,13 +33,14 @@ class Pin: NSObject, MKAnnotation
         // update the current pin number
         ++Pin.currentPinNumber
         
+        self.pinNumber = Pin.currentPinNumber
         self.coordinate = coordinate
         
         // create an annotation
         // let newAnnotation = MKPointAnnotation()
         // newAnnotation.coordinate = coordinate
-        self.pointAnnotation = MKPointAnnotation()
-        self.pointAnnotation.coordinate = coordinate
+        // self.pointAnnotation = MKPointAnnotation()
+        // self.pointAnnotation.coordinate = coordinate
         
         self.pinName = "Pin #\( Pin.currentPinNumber )"
         
@@ -78,11 +69,13 @@ class Pin: NSObject, MKAnnotation
         // remove the Pin from the model
         Pin.droppedPins.removeValueForKey( pinNumber )
         
+        --Pin.currentPinNumber
+        
         // no more annotations to reuse
-        if Pin.droppedPins.count == 0
-        {
-            TravelMapAnnotationView.resetReuseFlag()
-        }
+//        if Pin.droppedPins.count == 0
+//        {
+//            TravelMapAnnotationView.resetReuseFlag()
+//        }
     }
     
     class func getCurrentPinNumber() -> Int
@@ -90,6 +83,7 @@ class Pin: NSObject, MKAnnotation
         return Pin.currentPinNumber
     }
     
+    /*
     // this allows the map view in the TravelMapViewController to remove its annotations
     class func getAnnotationForPinNumber( pinNumber: Int ) -> MKAnnotation?
     {
@@ -108,4 +102,5 @@ class Pin: NSObject, MKAnnotation
         
         return nil
     }
+    */
 }

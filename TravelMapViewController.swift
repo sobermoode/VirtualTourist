@@ -17,7 +17,7 @@ class TravelMapViewController: UIViewController,
     @IBOutlet weak var mapView: MKMapView!
     
     // default map region if none exists in the NSUserDefaults;
-    // the saved map info
+    // hermosa beach, ca, my hometown 😁
     let defaultRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
             latitude: 33.862237,
@@ -39,15 +39,13 @@ class TravelMapViewController: UIViewController,
     // know not to put the map back at the saved region
     var returningFromPhotoAlbum: Bool = false
     
-    var currentPin: Pin?
-    var totalPins: Int = 0
-    
     // MARK: Set-up functions
     
     override func viewWillAppear( animated: Bool )
     {
-        // println( "TravelMap viewWillAppear: There are \( Pin.getCurrentPinNumber() ) pins." )
-        
+        // set the map;
+        // set it to the saved region, if restarting the app,
+        // otherwise, keep the map where it was prior to segueing to the PhotoAlbumViewController
         if !returningFromPhotoAlbum
         {
             if savedRegion != nil
@@ -76,8 +74,6 @@ class TravelMapViewController: UIViewController,
     
     override func viewDidLoad()
     {
-        // println( "TravelMap viewDidLoad: There are \( Pin.getCurrentPinNumber() ) pins." )
-        
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
@@ -174,17 +170,14 @@ class TravelMapViewController: UIViewController,
                 
                 // create a Pin
                 let newPin = Pin( coordinate: mapCoordinate )
-                ++totalPins
-                currentPin = newPin
                 
-                // add the annotation to the map
-                // mapView.addAnnotation( newPin.mapPinView.annotation )
-                // mapView.addAnnotation( Pin.getAnnotationForPinNumber( newPin.pinNumber ) )
-                // mapView.addAnnotation( newPin.pointAnnotation )
+                // add the pin to the map
                 mapView.addAnnotation( newPin )
             
                 return
             
+            // i couldn't quite figure out dragging functionality;
+            // might still need these if i return to working it out
             case .Changed:
                 return
             
@@ -198,78 +191,28 @@ class TravelMapViewController: UIViewController,
     
     // MARK: MKMapViewDelegate functions
     
-    /*
-    the way i've designed my Pin class, i encountered a bug where the coordinates sent to the PhotoAlbumViewController
-    weren't always the coordinates associated with the selected pin on the map. eventually, i deduced that the reason
-    was due to pin numbers (which i'd intended to be used as unique identifiers) being reused along with the annotations.
-    figuring out a solution, to prevent a dequeued annotation from reusing a pin number that was already associated with
-    a pin that was currently on the map, bent my brain. it took me about a day to come up with this:
-    */
     func mapView(
         mapView: MKMapView!,
         viewForAnnotation annotation: MKAnnotation!
     ) -> MKAnnotationView!
     {
+        let theAnnotation = annotation as! Pin
+        
         if let reusedAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as? MKPinAnnotationView
         {
-            println( "Reusing an annotation view..." )
-            let reusedAnnotation = annotation as! Pin
-            reusedAnnotationView.annotation = reusedAnnotation
-            // reusedAnnotationView.pin = TravelMapAnnotationView.pinToReuse
+            reusedAnnotationView.annotation = theAnnotation
             
             return reusedAnnotationView
         }
         else
         {
-            println( "Creating new annotation view..." )
-            let newAnnotation = annotation as! Pin
             var newAnnotationView = MKPinAnnotationView(
-                annotation: annotation,
+                annotation: theAnnotation,
                 reuseIdentifier: "mapPin"
             )
             
-            // newAnnotationView.tag = ++totalPins
-            
             return newAnnotationView
         }
-        
-        /*
-        // if there are annotations that have been recycled
-        if TravelMapAnnotationView.reuseMe
-        {
-            println( "Reusing an annotation view..." )
-            // get the total number of dropped pins
-            var totalPins: Int = Pin.currentPinNumber
-            
-            // go through each annotation view waiting to be reused
-            while totalPins-- > 0
-            {
-                var newAnnotationView = mapView.dequeueReusableAnnotationViewWithIdentifier( "mapPin" ) as! TravelMapAnnotationView
-                
-                // check for the match
-                if newAnnotationView.pinNumber != currentPin?.pinNumber
-                {
-                    continue
-                }
-                else
-                {
-                    newAnnotationView.annotation = annotation
-                    
-                    return newAnnotationView
-                }
-            }
-        }
-        
-        println( "Creating new annotation view..." )
-        // if no match is found, create a new annotation view
-        var newAnnotationView = TravelMapAnnotationView(
-            annotation: annotation,
-            reuseIdentifier: "mapPin",
-            pin: currentPin!
-        )
-        
-        return newAnnotationView
-        */
     }
     
     func mapView(
@@ -277,16 +220,12 @@ class TravelMapViewController: UIViewController,
         didSelectAnnotationView view: MKAnnotationView!
     )
     {
-        // let selectedAnnotation: AnyObject = mapView.selectedAnnotations[ 0 ] // as! MKPointAnnotation
-        // println( "selected \( selectedAnnotation )" )
+        // get the selected Pin
         let thePin = view.annotation as! Pin
         
         if !inEditMode
         {
-            // get the coordinate to pass to the PhotoAlbumViewController
-            // let theCoordinate = view.annotation.coordinate
-            
-            // segue to the photo album
+            // not editing pins; segue to the photo album
             let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
             photoAlbum.location = thePin
             
@@ -298,16 +237,14 @@ class TravelMapViewController: UIViewController,
         }
         else
         {
-            // get the selected pin
-            // let selectedPin = view as! TravelMapAnnotationView
-            
-            // remove the selected pin from the map,
-            // remove the Pin from the model
+            // editing pins;
+            // remove the selected pin from the map, remove the Pin from the model
             Pin.removePin( thePin.pinNumber )
             mapView.removeAnnotation( thePin )
         }
     }
     
+    // save the map state when it changes
     func mapView(
         mapView: MKMapView!,
         regionDidChangeAnimated animated: Bool

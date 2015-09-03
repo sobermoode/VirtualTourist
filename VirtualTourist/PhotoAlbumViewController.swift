@@ -21,21 +21,17 @@ class PhotoAlbumViewController: UIViewController,
     
     // the location selected from the travel map
     var location: Pin!
-//    var location = CLLocationCoordinate2D(
-//        latitude: 33.862237,
-//        longitude: -118.399519
-//    )
-    // var location: CLLocationCoordinate2D!
     
-    var photoResults = [[ String : AnyObject ]?]()
+    // var photoResults = [[ String : AnyObject ]?]()
     
-    var currentAlbum = [ UIImage? ]()
+    // var currentAlbum = [ UIImage? ]()
     
-    var photoAlbum: [ UIImage ]?
+    // var photoAlbum: [ UIImage ]?
     
-    var firstTime: Bool = false
+    // var firstTime: Bool = false
     
-    var currentAlbumImageData = [ NSData ]()
+    // var currentAlbumImageData = [ NSData ]()
+    var currentAlbumInfo = [ NSURL ]()
     var currentAlbumImages = [ UIImage? ]()
     
     override func viewDidLoad()
@@ -115,6 +111,7 @@ class PhotoAlbumViewController: UIViewController,
                 }
                 else
                 {
+                    self.currentAlbumInfo = photoAlbumInfo!
                     self.currentAlbumImages = [ UIImage? ](
                         count: photoAlbumInfo!.count,
                         repeatedValue: nil
@@ -256,18 +253,25 @@ class PhotoAlbumViewController: UIViewController,
             {
                 dispatch_async( dispatch_get_main_queue() )
                 {
-                    let imageURL = FlickrClient.sharedInstance().currentAlbumPhotoInfo[ indexPath.item ]
+                    let imageURL = self.currentAlbumInfo[ indexPath.item ]
                     
-                    let imageTask = NSURLSession.sharedSession().dataTaskWithURL( imageURL )
+                    FlickrClient.sharedInstance().taskForImage( imageURL )
                     {
-                        imageData, imageResponse, imageError in
+                        imageData, imageError in
                         
-                        let cellImage = UIImage( data: imageData )
-                        
-                        cell.photoImageView.image = cellImage
-                        self.currentAlbumImages[ indexPath.item ] = cellImage
+                        if imageError != nil
+                        {
+                            // TODO: turn this into an alert
+                            println( "There was an error getting the image for cell \( indexPath.item ): \( imageError )" )
+                        }
+                        else
+                        {
+                            let cellImage = UIImage( data: imageData! )
+                            
+                            cell.photoImageView.image = cellImage
+                            self.currentAlbumImages[ indexPath.item ] = cellImage
+                        }
                     }
-                    imageTask.resume()
                 }
                 
                 return cell

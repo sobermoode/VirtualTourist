@@ -20,6 +20,9 @@ class Pin: NSObject, MKAnnotation
     var coordinate: CLLocationCoordinate2D
     var photoAlbum: [ Photo? ]? = nil
     
+    // for use with subsequent requests for new photo albums
+    var nextFirstImage: Int?
+    
     init( coordinate: CLLocationCoordinate2D )
     {
         // update the current pin number

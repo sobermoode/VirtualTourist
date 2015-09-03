@@ -149,27 +149,52 @@ class FlickrClient: NSObject
                     let photos = requestResults[ "photos" ] as! [ String : AnyObject ]
                     let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
                     
+                    println( "Got \( photoArray.count ) results." )
+                    
                     // if there are results to work with, create a set to return to the PhotoAlbumViewController
                     // if there are no results, the zeroResults flag will get sent, instead
                     if photoArray.count != 0
                     {
                         // take a sub-section of the result set, as configured above;
                         // get next section of the result set if a new album is requested
+                        // NOTE: this code is imperfect; if the result set is less than ( self.maxImagesToShow * 2 ),
+                        // requesting a new collection will yield the exact same set of images. otherwise, it will
+                        // get a new full album, until the next set contains less than ( self.maxImagesToShow * 2 ).
                         // set the counter to zero if there is only one result, to avoid array index out-of-bounds error
-                        // var resultCounter: Int
                         var startPhoto, endPhoto: Int
+                        var dontSetNextFirstImage: Bool = false
                         if photoArray.count == 1
                         {
+                            println( "There was 1 result." )
                             startPhoto = 0
                             endPhoto = 0
+                            
+                            dontSetNextFirstImage = true
+                        }
+                        else if photoArray.count <= self.maxImagesToShow
+                        {
+                            println( "There were 30 or less results." )
+                            startPhoto = 0
+                            endPhoto = photoArray.count - 1
+                            
+                            dontSetNextFirstImage = true
                         }
                         else
                         {
+                            println( "There were 30+ results." )
                             if let nextStart = self.currentPin.nextFirstImage
                             {
                                 println( "There were more images..." )
-                                startPhoto = nextStart
-                                endPhoto = ( photoArray.count > ( nextStart + self.maxImagesToShow ) ) ? ( nextStart + self.maxImagesToShow - 1 ) : self.maxImagesToShow - 1
+                                if ( nextStart + self.maxImagesToShow ) > photoArray.count
+                                {
+                                    startPhoto = 0
+                                    endPhoto = self.maxImagesToShow - 1
+                                }
+                                else
+                                {
+                                    startPhoto = nextStart
+                                    endPhoto = ( photoArray.count > ( nextStart + self.maxImagesToShow ) ) ? ( nextStart + self.maxImagesToShow - 1 ) : self.maxImagesToShow - 1
+                                }
                             }
                             else
                             {
@@ -186,7 +211,7 @@ class FlickrClient: NSObject
                         let albumInfos = [[ String : AnyObject ]]( photoArray[ startPhoto...endPhoto ] )
                         
                         // update the album counter
-                        self.currentPin.nextFirstImage = endPhoto + 1
+                        self.currentPin.nextFirstImage = ( dontSetNextFirstImage ) ? nil : endPhoto + 1
                         
                         // create a URL from the info in each dictionary
                         // and append it to the current set

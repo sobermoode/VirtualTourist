@@ -55,6 +55,7 @@ class PhotoAlbumViewController: UIViewController,
         // don't make a request for a new album if we're revisiting an album
         if location.photoAlbum != nil
         {
+            println( "The photo album has \( location.photoAlbum?.count ) images." )
             // we already have an album, so reload the collection view
             dispatch_async( dispatch_get_main_queue() )
             {
@@ -63,7 +64,6 @@ class PhotoAlbumViewController: UIViewController,
         }
         else
         {
-            // TODO: maybe just call newCollection() here?
             newCollection( nil )
         }
     }

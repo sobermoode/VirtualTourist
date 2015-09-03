@@ -15,7 +15,10 @@ class FlickrClient: NSObject
     var session = NSURLSession.sharedSession()
     
     // the location to use when querying Flickr for images
-    var location: CLLocationCoordinate2D!
+    // var location: CLLocationCoordinate2D!
+    
+    // the Pin to request images for
+    var currentPin: Pin!
     
     // holder collection
     var currentAlbumPhotoInfo = [ NSURL ]()
@@ -64,15 +67,18 @@ class FlickrClient: NSObject
     // returns an array of URLs for the PhotoAlbumViewController to use to populate the collection view,
     // or a flag that there weren't any results, or the error details, if one occurs
     func getNewPhotoAlbumForLocation(
-        location: CLLocationCoordinate2D,
+        pin: Pin,
         completionHandler: ( photoAlbumInfo: [ NSURL ]?, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
     )
     {
+        // set the current Pin
+        currentPin = pin
+        
         // blank the current set of URL info
         currentAlbumPhotoInfo.removeAll( keepCapacity: false )
         
         // make the initial request
-        requestResultsForLocation( location )
+        requestResultsForLocation( pin.coordinate )
         {
             success, requestError in
             
@@ -143,27 +149,69 @@ class FlickrClient: NSObject
                     let photos = requestResults[ "photos" ] as! [ String : AnyObject ]
                     let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
                     
+                    println( "Got \( photoArray.count ) results." )
+                    
                     // if there are results to work with, create a set to return to the PhotoAlbumViewController
                     // if there are no results, the zeroResults flag will get sent, instead
                     if photoArray.count != 0
                     {
-                        // take a sub-section of the result set, as set above
+                        // take a sub-section of the result set, as configured above;
+                        // get next section of the result set if a new album is requested
+                        // NOTE: this code is imperfect; if the result set is less than ( self.maxImagesToShow * 2 ),
+                        // requesting a new collection will yield the exact same set of images. otherwise, it will
+                        // get a new full album, until the next set contains less than ( self.maxImagesToShow * 2 ).
                         // set the counter to zero if there is only one result, to avoid array index out-of-bounds error
-                        var resultCounter: Int
+                        var startPhoto, endPhoto: Int
+                        var dontSetNextFirstImage: Bool = false
                         if photoArray.count == 1
                         {
-                            resultCounter = 0
+                            println( "There was 1 result." )
+                            startPhoto = 0
+                            endPhoto = 0
+                            
+                            dontSetNextFirstImage = true
+                        }
+                        else if photoArray.count <= self.maxImagesToShow
+                        {
+                            println( "There were 30 or less results." )
+                            startPhoto = 0
+                            endPhoto = photoArray.count - 1
+                            
+                            dontSetNextFirstImage = true
                         }
                         else
                         {
-                            resultCounter = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count - 1
+                            println( "There were 30+ results." )
+                            if let nextStart = self.currentPin.nextFirstImage
+                            {
+                                println( "There were more images..." )
+                                if ( nextStart + self.maxImagesToShow ) > photoArray.count
+                                {
+                                    startPhoto = 0
+                                    endPhoto = self.maxImagesToShow - 1
+                                }
+                                else
+                                {
+                                    startPhoto = nextStart
+                                    endPhoto = ( photoArray.count > ( nextStart + self.maxImagesToShow ) ) ? ( nextStart + self.maxImagesToShow - 1 ) : self.maxImagesToShow - 1
+                                }
+                            }
+                            else
+                            {
+                                println( "Starting over..." )
+                                startPhoto = 0
+                                endPhoto = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count - 1
+                            }
                         }
                         
                         // strange casting here;
                         // since taking a sub-section of an array returns a Slice (a pointer into an array, not a new array),
                         // and which is itself a type, i had to cast the Slice into the type i actually want to use
                         // check out https://stackoverflow.com/questions/24073269/what-is-a-slice-in-swift for more
-                        let albumInfos = [[ String : AnyObject ]]( photoArray[ 0...resultCounter ] )
+                        let albumInfos = [[ String : AnyObject ]]( photoArray[ startPhoto...endPhoto ] )
+                        
+                        // update the album counter
+                        self.currentPin.nextFirstImage = ( dontSetNextFirstImage ) ? nil : endPhoto + 1
                         
                         // create a URL from the info in each dictionary
                         // and append it to the current set

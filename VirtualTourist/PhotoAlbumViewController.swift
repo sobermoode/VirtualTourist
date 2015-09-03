@@ -39,7 +39,7 @@ class PhotoAlbumViewController: UIViewController,
         // add action to the button
         newCollectionButton.addTarget(
             self,
-            action: "newCollection",
+            action: "newCollection:",
             forControlEvents: .TouchUpInside
         )
         
@@ -55,6 +55,7 @@ class PhotoAlbumViewController: UIViewController,
         // don't make a request for a new album if we're revisiting an album
         if location.photoAlbum != nil
         {
+            println( "The photo album has \( location.photoAlbum?.count ) images." )
             // we already have an album, so reload the collection view
             dispatch_async( dispatch_get_main_queue() )
             {
@@ -63,103 +64,7 @@ class PhotoAlbumViewController: UIViewController,
         }
         else
         {
-            // initiate the Flickr request for the photo album
-            FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location.coordinate )
-            {
-                photoAlbumInfo, zeroResults, photoAlbumError in
-                
-                // there was an error somewhere along the way
-                if photoAlbumError != nil
-                {
-                    dispatch_async( dispatch_get_main_queue() )
-                    {
-                        self.photoAlbumCollection.hidden = true
-                        
-                        let alert = UIAlertController(
-                            title: "There was an error requesting the photos from Flickr:",
-                            message: "\( photoAlbumError )",
-                            preferredStyle: UIAlertControllerStyle.Alert
-                        )
-                        
-                        let alertAction = UIAlertAction(
-                            title: "Keep Traveling",
-                            style: UIAlertActionStyle.Cancel
-                        )
-                        {
-                            action in
-                            
-                            let travelMap = self.presentingViewController as! TravelMapViewController
-                            travelMap.returningFromPhotoAlbum = true
-                            
-                            self.dismissViewControllerAnimated( true, completion: nil )
-                        }
-                        
-                        alert.addAction( alertAction )
-                        
-                        self.presentViewController(
-                            alert,
-                            animated: true,
-                            completion: nil
-                        )
-                    }
-                }
-                else
-                {
-                    // nobody took any pictures there
-                    if zeroResults
-                    {
-                        dispatch_async( dispatch_get_main_queue() )
-                        {
-                            self.photoAlbumCollection.hidden = true
-                            
-                            let alert = UIAlertController(
-                                title: "😓   😓   😓",
-                                message: "No one took any pictures at that location.",
-                                preferredStyle: UIAlertControllerStyle.Alert
-                            )
-                            
-                            let alertAction = UIAlertAction(
-                                title: "Keep Traveling",
-                                style: UIAlertActionStyle.Cancel
-                            )
-                            {
-                                action in
-                                
-                                let travelMap = self.presentingViewController as! TravelMapViewController
-                                travelMap.returningFromPhotoAlbum = true
-                                
-                                self.dismissViewControllerAnimated( true, completion: nil )
-                            }
-                            
-                            alert.addAction( alertAction )
-                            
-                            self.presentViewController(
-                                alert,
-                                animated: true,
-                                completion: nil
-                            )
-                        }
-                    }
-                    else
-                    {
-                        // we've got a photo album!
-                        // save the info to construct URLs to images and populate the array of current images to nil
-                        self.currentAlbumInfo = photoAlbumInfo!
-                        
-                        // initialize the Pin's photo album
-                        self.location.photoAlbum = [ Photo? ](
-                            count: photoAlbumInfo!.count,
-                            repeatedValue: nil
-                        )
-                        
-                        // reload the collection view
-                        dispatch_async( dispatch_get_main_queue() )
-                        {
-                            self.photoAlbumCollection.reloadData()
-                        }
-                    }
-                }
-            }
+            newCollection( nil )
         }
     }
     
@@ -211,6 +116,108 @@ class PhotoAlbumViewController: UIViewController,
             true,
             completion: nil
         )
+    }
+    
+    func newCollection( sender: UIButton? )
+    {
+        println( "Requesting a new collection..." )
+        // initiate the Flickr request for the photo album
+        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location )
+        {
+            photoAlbumInfo, zeroResults, photoAlbumError in
+            
+            // there was an error somewhere along the way
+            if photoAlbumError != nil
+            {
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    self.photoAlbumCollection.hidden = true
+                    
+                    let alert = UIAlertController(
+                        title: "There was an error requesting the photos from Flickr:",
+                        message: "\( photoAlbumError )",
+                        preferredStyle: UIAlertControllerStyle.Alert
+                    )
+                    
+                    let alertAction = UIAlertAction(
+                        title: "Keep Traveling",
+                        style: UIAlertActionStyle.Cancel
+                    )
+                    {
+                        action in
+                        
+                        let travelMap = self.presentingViewController as! TravelMapViewController
+                        travelMap.returningFromPhotoAlbum = true
+                        
+                        self.dismissViewControllerAnimated( true, completion: nil )
+                    }
+                    
+                    alert.addAction( alertAction )
+                    
+                    self.presentViewController(
+                        alert,
+                        animated: true,
+                        completion: nil
+                    )
+                }
+            }
+            else
+            {
+                // nobody took any pictures there
+                if zeroResults
+                {
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        self.photoAlbumCollection.hidden = true
+                        
+                        let alert = UIAlertController(
+                            title: "😓   😓   😓",
+                            message: "No one took any pictures at that location.",
+                            preferredStyle: UIAlertControllerStyle.Alert
+                        )
+                        
+                        let alertAction = UIAlertAction(
+                            title: "Keep Traveling",
+                            style: UIAlertActionStyle.Cancel
+                        )
+                        {
+                            action in
+                            
+                            let travelMap = self.presentingViewController as! TravelMapViewController
+                            travelMap.returningFromPhotoAlbum = true
+                            
+                            self.dismissViewControllerAnimated( true, completion: nil )
+                        }
+                        
+                        alert.addAction( alertAction )
+                        
+                        self.presentViewController(
+                            alert,
+                            animated: true,
+                            completion: nil
+                        )
+                    }
+                }
+                else
+                {
+                    // we've got a photo album!
+                    // save the info to construct URLs to images and populate the array of current images to nil
+                    self.currentAlbumInfo = photoAlbumInfo!
+                    
+                    // initialize the Pin's photo album
+                    self.location.photoAlbum = [ Photo? ](
+                        count: photoAlbumInfo!.count,
+                        repeatedValue: nil
+                    )
+                    
+                    // reload the collection view
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        self.photoAlbumCollection.reloadData()
+                    }
+                }
+            }
+        }
     }
     
     // MARK: MKMapViewDelegate functions

@@ -16,19 +16,17 @@ class FlickrClient: NSObject
     
     // the location to use when querying Flickr for images
     var location: CLLocationCoordinate2D!
-    // var destination: Pin!
     
-    // holder collections
-    // var currentAlbumPhotoInfo = [[ String : AnyObject ]]()
+    // holder collection
     var currentAlbumPhotoInfo = [ NSURL ]()
-    // var currentAlbumImageData = [ NSData ]()
-    // var albumImages: [ UIImage? ]?
-    // var currentAlbumImages = [ UIImage ]()
     
-    // var currentDestinationID: Int16!
+    // might still need this to cache photo albums returned in the current session,
+    // to prevent another query to Flickr for the same set of pictures,
+    // because they won't be fetched from Core Data
     var albumForDestinationID = [ Int16 : AnyObject ]()
     
     // max size of the photo album
+    // (use to configure the collection view in the PhotoAlbumViewController)
     var maxImagesToShow: Int = 30
     
     // NOTE:
@@ -62,6 +60,8 @@ class FlickrClient: NSObject
         return NSURL( string: queryString )!
     }
     
+    // queries Flickr for a set of images at the current location;
+    // 
     func getNewPhotoAlbumForLocation(
         location: CLLocationCoordinate2D,
         completionHandler: ( success: Bool, zeroResults: Bool, photoAlbumError: NSError? ) -> Void
@@ -87,7 +87,6 @@ class FlickrClient: NSObject
             {
                 if self.currentAlbumPhotoInfo.isEmpty
                 {
-                    println( "Zero results..." )
                     completionHandler(
                         success: true,
                         zeroResults: true,

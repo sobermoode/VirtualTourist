@@ -15,18 +15,18 @@ import CoreData
 class Pin: NSManagedObject, MKAnnotation
 {
     // class properties
-    // static var droppedPins = [ Int : Pin ]()
     static var currentPinNumber: Int = 0
     
     // instance properties
-    // @NSManaged var pinNumber: Int
-    // @NSManaged var coordinate: CLLocationCoordinate2D
     @NSManaged var pinLatitude: Double
     @NSManaged var pinLongitude: Double
     
     var coordinate: CLLocationCoordinate2D
-        {
-        return CLLocationCoordinate2D(latitude: pinLatitude, longitude: pinLongitude)
+    {
+        return CLLocationCoordinate2D(
+            latitude: pinLatitude,
+            longitude: pinLongitude
+        )
     }
     
     var photoAlbum: [ Photo? ]? // = nil
@@ -54,20 +54,8 @@ class Pin: NSManagedObject, MKAnnotation
         ++Pin.currentPinNumber
         println( "Current Pin number: \( Pin.currentPinNumber )" )
         
-        // self.pinNumber = Pin.currentPinNumber
-        // self.willChangeValueForKey("coordinate")
-        // self.setPrimitiveValue(coordinate, forKey: "coordinate")
-        // self.coordinate = coordinate
-        // self.didChangeValueForKey("coordinate")
-        // self.coordinate = coordinate
         pinLatitude = coordinate.latitude
         pinLongitude = coordinate.longitude
-        
-        // the Pin class keeps track of all active Pins
-//        Pin.droppedPins.updateValue(
-//            self,
-//            forKey: Pin.currentPinNumber
-//        )
     }
     
     override init(
@@ -75,7 +63,10 @@ class Pin: NSManagedObject, MKAnnotation
         insertIntoManagedObjectContext context: NSManagedObjectContext?
     )
     {
-        super.init(entity: entity, insertIntoManagedObjectContext: context)
+        super.init(
+            entity: entity,
+            insertIntoManagedObjectContext: context
+        )
     }
     
     class func fetchAllPins() -> [ Pin ]?
@@ -101,27 +92,8 @@ class Pin: NSManagedObject, MKAnnotation
         return ( pins.count > 0 ) ? pins : nil
     }
     
-    /*
-    required init(coder aDecoder: NSCoder) {
-        let pinEntity = NSEntityDescription.entityForName(
-            "Pin",
-            inManagedObjectContext: CoreDataStackManager.sharedInstance().managedObjectContext!
-            )!
-        super.init(entity: pinEntity, insertIntoManagedObjectContext: CoreDataStackManager.sharedInstance().managedObjectContext!)
-    }
-    */
-    
-    /*
-    func encodeWithCoder(aCoder: NSCoder) {
-        super.encode()
-    }
-    */
-    
     class func removePin()
     {
-        // remove the Pin from the model
-        // Pin.droppedPins.removeValueForKey( pinNumber )
-        
         // update the current Pin number
         --Pin.currentPinNumber
     }

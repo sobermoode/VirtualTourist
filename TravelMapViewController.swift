@@ -8,6 +8,7 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 class TravelMapViewController: UIViewController,
     MKMapViewDelegate
@@ -39,6 +40,11 @@ class TravelMapViewController: UIViewController,
     // know not to put the map back at the saved region
     var returningFromPhotoAlbum: Bool = false
     
+    lazy var sharedContext: NSManagedObjectContext =
+    {
+        return CoreDataStackManager.sharedInstance().managedObjectContext!
+    }()
+    
     // MARK: Set-up functions
     
     override func viewWillAppear( animated: Bool )
@@ -65,8 +71,6 @@ class TravelMapViewController: UIViewController,
         {
             returningFromPhotoAlbum = false
         }
-        
-        // TODO: 2-1 execute the Pin fetch request from Core Data
         
         // set the map's delegate
         mapView.delegate = self
@@ -101,6 +105,10 @@ class TravelMapViewController: UIViewController,
         }
         
         // TODO: 2-2 add all the pins, from step 2-1
+        if let allPins = Pin.fetchAllPins()
+        {
+            mapView.addAnnotations( allPins )
+        }
         
         // add the initial action to the editPinsButton
         editPinsButton.action = "editPins:"
@@ -169,10 +177,13 @@ class TravelMapViewController: UIViewController,
                 )
                 
                 // create a Pin
-                let newPin = Pin( coordinate: mapCoordinate )
+                let newPin = Pin( coordinate: mapCoordinate, context: sharedContext )
                 
                 // add the pin to the map
                 mapView.addAnnotation( newPin )
+                
+                // save the Pin to the context
+                CoreDataStackManager.sharedInstance().saveContext()
             
                 return
             
@@ -238,9 +249,13 @@ class TravelMapViewController: UIViewController,
         else
         {
             // editing pins;
-            // remove the selected pin from the map, remove the Pin from the model
-            Pin.removePin( thePin.pinNumber )
+            // remove the selected pin from the map, update the model Pin count,
+            Pin.removePin()
             mapView.removeAnnotation( thePin )
+            
+            // update the context
+            sharedContext.deleteObject( thePin )
+            CoreDataStackManager.sharedInstance().saveContext()
         }
     }
     

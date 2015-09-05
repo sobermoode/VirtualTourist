@@ -25,7 +25,7 @@ class PhotoAlbumViewController: UIViewController,
     
     // collections for the current photo album
     var currentAlbumInfo = [ NSURL ]()
-    // var currentAlbumImages = [ UIImage? ]()
+    var localCache = [ String : UIImage ]()
     
     lazy var sharedContext: NSManagedObjectContext =
     {
@@ -226,7 +226,7 @@ class PhotoAlbumViewController: UIViewController,
                     }
                 }
                 
-                // CoreDataStackManager.sharedInstance().saveContext()
+                CoreDataStackManager.sharedInstance().saveContext()
             }
         }
     }
@@ -267,7 +267,8 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        return self.currentAlbumInfo.count
+        
+        return self.location.photoAlbum.count != 0 ? self.location.photoAlbum.count : self.currentAlbumInfo.count
         // return self.location.photoAlbum.count
         
         /*
@@ -308,13 +309,11 @@ class PhotoAlbumViewController: UIViewController,
             forIndexPath: indexPath
         ) as? PhotoAlbumCell
         {
-            if cell.didGetImage
+            let imageURL = self.currentAlbumInfo[ indexPath.item ]
+            
+            if let cellImage = localCache[ imageURL.description ]
             {
-                println( "Already have an image for this cell..." )
-//                dispatch_async( dispatch_get_main_queue() )
-//                {
-//                    cell.photoImageView.image = cellImage
-//                }
+                cell.photoImageView.image = cellImage
                 
                 return cell
             }
@@ -325,7 +324,8 @@ class PhotoAlbumViewController: UIViewController,
                 dispatch_async( dispatch_get_main_queue() )
                 {
                     // get the URL for the cell
-                    let imageURL = self.currentAlbumInfo[ indexPath.item ]
+                    // let imageURL = self.currentAlbumInfo[ indexPath.item ]
+                    println( "Setting image \( imageURL.description )" )
                     
                     // start the image task
                     FlickrClient.sharedInstance().taskForImage( imageURL )
@@ -376,7 +376,8 @@ class PhotoAlbumViewController: UIViewController,
                             dispatch_async( dispatch_get_main_queue() )
                             {
                                 cell.photoImageView.image = cellPhoto.image
-                                cell.didGetImage = true
+                                self.localCache.updateValue( UIImage( data: imageData! )!, forKey: imageURL.description )
+                                // cell.didGetImage = true
                                 // self.location.photoAlbum.append( cellPhoto )
                                 // self.location.photoAlbum![ indexPath.item ] = cellPhoto
                             }
@@ -393,5 +394,14 @@ class PhotoAlbumViewController: UIViewController,
         {
             return UICollectionViewCell( frame: CGRect( x: 0, y: 0, width: 125, height: 108 ) )
         }
+        
+        
+        
+        /*
+        else
+        {
+            
+        }
+        */
     }
 }

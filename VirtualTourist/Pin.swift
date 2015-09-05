@@ -29,7 +29,7 @@ class Pin: NSManagedObject, MKAnnotation
         )
     }
     
-    var photoAlbum: [ Photo? ]? // = nil
+    @NSManaged var photoAlbum: [ Photo ] // = nil
     
     // for use with subsequent requests for new photo albums
     var nextFirstImage: Int?
@@ -56,6 +56,7 @@ class Pin: NSManagedObject, MKAnnotation
         
         pinLatitude = coordinate.latitude
         pinLongitude = coordinate.longitude
+        // photoAlbum = [ Photo ]()
     }
     
     override init(

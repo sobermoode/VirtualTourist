@@ -8,6 +8,7 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 class PhotoAlbumViewController: UIViewController,
     MKMapViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate
@@ -25,6 +26,11 @@ class PhotoAlbumViewController: UIViewController,
     // collections for the current photo album
     var currentAlbumInfo = [ NSURL ]()
     // var currentAlbumImages = [ UIImage? ]()
+    
+    lazy var sharedContext: NSManagedObjectContext =
+    {
+        return CoreDataStackManager.sharedInstance().managedObjectContext!
+    }()
     
     override func viewDidLoad()
     {
@@ -53,9 +59,9 @@ class PhotoAlbumViewController: UIViewController,
         noImagesLabel.hidden  = true
         
         // don't make a request for a new album if we're revisiting an album
-        if location.photoAlbum != nil
+        if !location.photoAlbum.isEmpty
         {
-            println( "The photo album has \( location.photoAlbum?.count ) images." )
+            println( "The photo album has \( location.photoAlbum.count ) images." )
             // we already have an album, so reload the collection view
             dispatch_async( dispatch_get_main_queue() )
             {
@@ -64,6 +70,7 @@ class PhotoAlbumViewController: UIViewController,
         }
         else
         {
+            println( "Getting a new collection..." )
             newCollection( nil )
         }
     }
@@ -204,11 +211,13 @@ class PhotoAlbumViewController: UIViewController,
                     // save the info to construct URLs to images and populate the array of current images to nil
                     self.currentAlbumInfo = photoAlbumInfo!
                     
+                    // println( photoAlbumInfo! )
+                    
                     // initialize the Pin's photo album
-                    self.location.photoAlbum = [ Photo? ](
-                        count: photoAlbumInfo!.count,
-                        repeatedValue: nil
-                    )
+//                    self.location.photoAlbum = [ Photo? ](
+//                        count: photoAlbumInfo!.count,
+//                        repeatedValue: nil
+//                    )
                     
                     // reload the collection view
                     dispatch_async( dispatch_get_main_queue() )
@@ -216,6 +225,8 @@ class PhotoAlbumViewController: UIViewController,
                         self.photoAlbumCollection.reloadData()
                     }
                 }
+                
+                // CoreDataStackManager.sharedInstance().saveContext()
             }
         }
     }
@@ -256,8 +267,24 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
+        return self.currentAlbumInfo.count
+        // return self.location.photoAlbum.count
+        
+        /*
+        println( "There are \( self.location.photoAlbum.count ) Photos in the album." )
+        if self.location.photoAlbum.isEmpty
+        {
+            return 0
+        }
+        else
+        {
+            return self.location.photoAlbum.count
+        }
+        */
+        
+        /*
         // make sure we've got a photo album to populate the collection view with
-        if let theCount = self.location.photoAlbum?.count
+        if let theCount = self.location.photoAlbum.count
         {
             return theCount
         }
@@ -265,6 +292,7 @@ class PhotoAlbumViewController: UIViewController,
         {
             return 0
         }
+        */
     }
     
     // NOTE:
@@ -280,18 +308,19 @@ class PhotoAlbumViewController: UIViewController,
             forIndexPath: indexPath
         ) as? PhotoAlbumCell
         {
-            // use the already-downloaded image, if it exists
-            if let cellImage = location.photoAlbum![ indexPath.item ]
+            if cell.didGetImage
             {
-                dispatch_async( dispatch_get_main_queue() )
-                {
-                    cell.photoImageView.image = cellImage.image
-                }
+                println( "Already have an image for this cell..." )
+//                dispatch_async( dispatch_get_main_queue() )
+//                {
+//                    cell.photoImageView.image = cellImage
+//                }
                 
                 return cell
             }
             else
             {
+                println( "Downloading a new image..." )
                 // download the image for the cell, if necessary
                 dispatch_async( dispatch_get_main_queue() )
                 {
@@ -339,15 +368,20 @@ class PhotoAlbumViewController: UIViewController,
                             // let cellImage = UIImage( data: imageData! )
                             let cellPhoto = Photo(
                                 pin: self.location,
-                                imageData: imageData!
+                                imageData: imageData!,
+                                context: self.sharedContext
                             )
                             
                             // set the cell and save the image to the local cache
                             dispatch_async( dispatch_get_main_queue() )
                             {
                                 cell.photoImageView.image = cellPhoto.image
-                                self.location.photoAlbum![ indexPath.item ] = cellPhoto
+                                cell.didGetImage = true
+                                // self.location.photoAlbum.append( cellPhoto )
+                                // self.location.photoAlbum![ indexPath.item ] = cellPhoto
                             }
+                            
+                            // CoreDataStackManager.sharedInstance().saveContext()
                         }
                     }
                 }

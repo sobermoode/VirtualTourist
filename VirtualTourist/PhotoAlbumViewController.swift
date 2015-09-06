@@ -25,7 +25,8 @@ class PhotoAlbumViewController: UIViewController,
     
     // collections for the current photo album
     var currentAlbumInfo = [ NSURL ]()
-    var localCache = [ String : UIImage ]()
+    // var localCache = [ String : UIImage ]()
+    var alreadyHaveImages: Bool = false
     
     lazy var sharedContext: NSManagedObjectContext =
     {
@@ -34,6 +35,7 @@ class PhotoAlbumViewController: UIViewController,
     
     override func viewDidLoad()
     {
+        println( "viewDidLoad, currentAlbumInfo: \( currentAlbumInfo.count )" )
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
@@ -58,6 +60,7 @@ class PhotoAlbumViewController: UIViewController,
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
         
+        /*
         // don't make a request for a new album if we're revisiting an album
         if !location.photoAlbum.isEmpty
         {
@@ -67,6 +70,28 @@ class PhotoAlbumViewController: UIViewController,
             {
                 self.photoAlbumCollection.reloadData()
             }
+        }
+        else
+        {
+            println( "Getting a new collection..." )
+            newCollection( nil )
+        }
+        */
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        println( "viewWillAppear, currentAlbumInfo: \( currentAlbumInfo.count )" )
+        // don't make a request for a new album if we're revisiting an album
+        if !location.photoAlbum.isEmpty
+        {
+            alreadyHaveImages = true
+            println( "The photo album has \( location.photoAlbum.count ) images." )
+            // we already have an album, so reload the collection view
+            self.photoAlbumCollection.reloadData()
+//            dispatch_async( dispatch_get_main_queue() )
+//                {
+//                    self.photoAlbumCollection.reloadData()
+//            }
         }
         else
         {
@@ -224,9 +249,11 @@ class PhotoAlbumViewController: UIViewController,
                     {
                         self.photoAlbumCollection.reloadData()
                     }
+                    
+                    // CoreDataStackManager.sharedInstance().saveContext()
                 }
                 
-                CoreDataStackManager.sharedInstance().saveContext()
+                // CoreDataStackManager.sharedInstance().saveContext()
             }
         }
     }
@@ -267,8 +294,16 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
+        if alreadyHaveImages
+        {
+            return self.location.photoAlbum.count
+        }
+        else
+        {
+            return self.currentAlbumInfo.count
+        }
         
-        return self.location.photoAlbum.count != 0 ? self.location.photoAlbum.count : self.currentAlbumInfo.count
+        // return self.location.photoAlbum.count != 0 ? self.location.photoAlbum.count : self.currentAlbumInfo.count
         // return self.location.photoAlbum.count
         
         /*
@@ -309,16 +344,29 @@ class PhotoAlbumViewController: UIViewController,
             forIndexPath: indexPath
         ) as? PhotoAlbumCell
         {
-            let imageURL = self.currentAlbumInfo[ indexPath.item ]
+            // let imageURL = self.currentAlbumInfo[ indexPath.item ]
             
+            /*
             if let cellImage = localCache[ imageURL.description ]
             {
                 cell.photoImageView.image = cellImage
                 
                 return cell
             }
-            else
+            */
+            if alreadyHaveImages
             {
+                // let photoImage = location.photoAlbum[ indexPath.item ].image
+                // println( "The Photo image is \( photoImage )" )
+                let imageData = location.photoAlbum[ indexPath.item ].imageData
+                let cellImage = UIImage( data: imageData )
+                cell.photoImageView.image = cellImage
+                return cell
+            }
+            if true
+            {
+                let imageURL = self.currentAlbumInfo[ indexPath.item ]
+                
                 println( "Downloading a new image..." )
                 // download the image for the cell, if necessary
                 dispatch_async( dispatch_get_main_queue() )
@@ -328,7 +376,7 @@ class PhotoAlbumViewController: UIViewController,
                     println( "Setting image \( imageURL.description )" )
                     
                     // start the image task
-                    FlickrClient.sharedInstance().taskForImage( imageURL )
+                    cell.imageTask = FlickrClient.sharedInstance().taskForImage( imageURL )
                     {
                         imageData, imageError in
                         
@@ -372,11 +420,13 @@ class PhotoAlbumViewController: UIViewController,
                                 context: self.sharedContext
                             )
                             
+                            CoreDataStackManager.sharedInstance().saveContext()
+                            
                             // set the cell and save the image to the local cache
                             dispatch_async( dispatch_get_main_queue() )
                             {
-                                cell.photoImageView.image = cellPhoto.image
-                                self.localCache.updateValue( UIImage( data: imageData! )!, forKey: imageURL.description )
+                                cell.photoImageView.image = UIImage( data: imageData! )
+                                // self.localCache.updateValue( UIImage( data: imageData! )!, forKey: imageURL.description )
                                 // cell.didGetImage = true
                                 // self.location.photoAlbum.append( cellPhoto )
                                 // self.location.photoAlbum![ indexPath.item ] = cellPhoto
@@ -395,6 +445,7 @@ class PhotoAlbumViewController: UIViewController,
             return UICollectionViewCell( frame: CGRect( x: 0, y: 0, width: 125, height: 108 ) )
         }
         
+        // return UICollectionViewCell( frame: CGRect( x: 0, y: 0, width: 125, height: 108 ) )
         
         
         /*

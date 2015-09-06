@@ -88,6 +88,11 @@ class Pin: NSManagedObject, MKAnnotation
             println( "There was an error fetching the pins from Core Data: \( fetchError )." )
         }
         
+        for pin in pins
+        {
+            println( "This Pin has \( pin.photoAlbum.count ) Photos." )
+        }
+        
         Pin.currentPinNumber = pins.count
         
         return ( pins.count > 0 ) ? pins : nil

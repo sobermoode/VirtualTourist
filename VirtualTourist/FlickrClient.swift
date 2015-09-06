@@ -14,10 +14,7 @@ class FlickrClient: NSObject
     // a session to create tasks with
     var session = NSURLSession.sharedSession()
     
-    // the location to use when querying Flickr for images
-    // var location: CLLocationCoordinate2D!
-    
-    // the Pin to request images for
+    // the location to request images for
     var currentPin: Pin!
     
     // holder collection
@@ -266,7 +263,7 @@ class FlickrClient: NSObject
     func taskForImage(
         imageURL: NSURL,
         completionHandler: ( imageData: NSData?, imageError: NSError? ) -> Void
-    ) -> NSURLSessionDataTask
+    )
     {
         let imageTask = session.dataTaskWithURL( imageURL )
         {
@@ -288,7 +285,5 @@ class FlickrClient: NSObject
             }
         }
         imageTask.resume()
-        
-        return imageTask
     }
 }

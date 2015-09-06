@@ -23,10 +23,13 @@ class PhotoAlbumViewController: UIViewController,
     // the location selected from the travel map
     var location: Pin!
     
-    // collections for the current photo album
+    // results returned from Flickr
     var currentAlbumInfo = [ NSURL ]()
+    
+    // images downloaded during this session
     var localCache = [ Int : UIImage ]()
-    // var localCache = [ String : UIImage ]()
+    
+    // a flag for determining whether or not we loaded a photo album from Core Data
     var alreadyHaveImages: Bool = false
     
     lazy var sharedContext: NSManagedObjectContext =
@@ -36,7 +39,6 @@ class PhotoAlbumViewController: UIViewController,
     
     override func viewDidLoad()
     {
-        println( "viewDidLoad, currentAlbumInfo: \( currentAlbumInfo.count )" )
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
@@ -60,43 +62,20 @@ class PhotoAlbumViewController: UIViewController,
         // TODO: remove the label
         // hide the label, unless it is needed
         noImagesLabel.hidden  = true
-        
-        /*
-        // don't make a request for a new album if we're revisiting an album
-        if !location.photoAlbum.isEmpty
-        {
-            println( "The photo album has \( location.photoAlbum.count ) images." )
-            // we already have an album, so reload the collection view
-            dispatch_async( dispatch_get_main_queue() )
-            {
-                self.photoAlbumCollection.reloadData()
-            }
-        }
-        else
-        {
-            println( "Getting a new collection..." )
-            newCollection( nil )
-        }
-        */
     }
     
-    override func viewWillAppear(animated: Bool) {
-        println( "viewWillAppear, currentAlbumInfo: \( currentAlbumInfo.count )" )
-        // don't make a request for a new album if we're revisiting an album
+    override func viewWillAppear( animated: Bool )
+    {
+        // we fetched a photo album from Core Data, or there's a local cache
         if !location.photoAlbum.isEmpty
         {
             alreadyHaveImages = true
-            println( "The photo album has \( location.photoAlbum.count ) images." )
-            // we already have an album, so reload the collection view
             self.photoAlbumCollection.reloadData()
-//            dispatch_async( dispatch_get_main_queue() )
-//                {
-//                    self.photoAlbumCollection.reloadData()
-//            }
         }
+            
+        // otherwise, initiate the request for a photo album
         else
         {
-            println( "Getting a new collection..." )
             newCollection( nil )
         }
     }
@@ -153,7 +132,6 @@ class PhotoAlbumViewController: UIViewController,
     
     func newCollection( sender: UIButton? )
     {
-        println( "Requesting a new collection..." )
         // initiate the Flickr request for the photo album
         FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location )
         {
@@ -234,27 +212,15 @@ class PhotoAlbumViewController: UIViewController,
                 else
                 {
                     // we've got a photo album!
-                    // save the info to construct URLs to images and populate the array of current images to nil
+                    // save the info to construct URLs to images
                     self.currentAlbumInfo = photoAlbumInfo!
-                    
-                    // println( photoAlbumInfo! )
-                    
-                    // initialize the Pin's photo album
-//                    self.location.photoAlbum = [ Photo? ](
-//                        count: photoAlbumInfo!.count,
-//                        repeatedValue: nil
-//                    )
                     
                     // reload the collection view
                     dispatch_async( dispatch_get_main_queue() )
                     {
                         self.photoAlbumCollection.reloadData()
                     }
-                    
-                    // CoreDataStackManager.sharedInstance().saveContext()
                 }
-                
-                // CoreDataStackManager.sharedInstance().saveContext()
             }
         }
     }
@@ -290,6 +256,8 @@ class PhotoAlbumViewController: UIViewController,
         return 1
     }
     
+    // the collection view will either use the photo album fetched from Core Data
+    // or the results returned from Flickr to populate itself
     func collectionView(
         collectionView: UICollectionView,
         numberOfItemsInSection section: Int
@@ -303,33 +271,6 @@ class PhotoAlbumViewController: UIViewController,
         {
             return self.currentAlbumInfo.count
         }
-        
-        // return self.location.photoAlbum.count != 0 ? self.location.photoAlbum.count : self.currentAlbumInfo.count
-        // return self.location.photoAlbum.count
-        
-        /*
-        println( "There are \( self.location.photoAlbum.count ) Photos in the album." )
-        if self.location.photoAlbum.isEmpty
-        {
-            return 0
-        }
-        else
-        {
-            return self.location.photoAlbum.count
-        }
-        */
-        
-        /*
-        // make sure we've got a photo album to populate the collection view with
-        if let theCount = self.location.photoAlbum.count
-        {
-            return theCount
-        }
-        else
-        {
-            return 0
-        }
-        */
     }
     
     // NOTE:
@@ -345,108 +286,86 @@ class PhotoAlbumViewController: UIViewController,
             forIndexPath: indexPath
         ) as! PhotoAlbumCell
         
-            // let imageURL = self.currentAlbumInfo[ indexPath.item ]
-            
-            /*
-            if let cellImage = localCache[ imageURL.description ]
-            {
-                cell.photoImageView.image = cellImage
-                
-                return cell
-            }
-            */
+        // the Pin came with a Photo from Core Data
+        if alreadyHaveImages
+        {
+            let cellImage = location.photoAlbum[ indexPath.item ].image
+            cell.photoImageView.image = cellImage
+        }
         
-            if alreadyHaveImages
+        // no Core Data image, but check the local cache for an already-downloaded image
+        else if let cellImage = localCache[ indexPath.item ]
+        {
+            cell.photoImageView.image = cellImage
+        }
+            
+        // otherwise, we have to download images from Flickr
+        else
+        {
+            // get the URL for the image
+            let imageURL = self.currentAlbumInfo[ indexPath.item ]
+            
+            dispatch_async( dispatch_get_main_queue() )
             {
-                // let photoImage = location.photoAlbum[ indexPath.item ].image
-                // println( "The Photo image is \( photoImage )" )
-                // let imageData = location.photoAlbum[ indexPath.item ].imageData
-                let cellImage = location.photoAlbum[ indexPath.item ].image
-                cell.photoImageView.image = cellImage
-                // return cell
-            }
-            else if let cellImage = localCache[ indexPath.item ]
-            {
-                cell.photoImageView.image = cellImage
-                // return cell
-            }
-            else
-            {
-                let imageURL = self.currentAlbumInfo[ indexPath.item ]
-                
-                println( "Downloading a new image..." )
-                // download the image for the cell, if necessary
-                dispatch_async( dispatch_get_main_queue() )
+                // start the image task
+                FlickrClient.sharedInstance().taskForImage( imageURL )
                 {
-                    // get the URL for the cell
-                    // let imageURL = self.currentAlbumInfo[ indexPath.item ]
-                    println( "Setting image \( imageURL.description )" )
+                    imageData, imageError in
                     
-                    // start the image task
-                    cell.imageTask = FlickrClient.sharedInstance().taskForImage( imageURL )
+                    // an error happened
+                    if imageError != nil
                     {
-                        imageData, imageError in
-                        
-                        // an error happened
-                        if imageError != nil
+                        dispatch_async( dispatch_get_main_queue() )
                         {
-                            dispatch_async( dispatch_get_main_queue() )
-                            {
-                                let alert = UIAlertController(
-                                    title: "There was an error getting the image for cell \( indexPath.item ):",
-                                    message: "\( imageError )",
-                                    preferredStyle: UIAlertControllerStyle.Alert
-                                )
-                                
-                                let alertAction = UIAlertAction(
-                                    title: "😓   😓   😓",
-                                    style: UIAlertActionStyle.Cancel
-                                )
-                                {
-                                    action in
-                                    
-                                    return
-                                }
-                                
-                                alert.addAction( alertAction )
-                                
-                                self.presentViewController(
-                                    alert,
-                                    animated: true,
-                                    completion: nil
-                                )
-                            }
-                        }
-                        else
-                        {
-                            // create the cell image with the downloaded data
-                            // let cellImage = UIImage( data: imageData! )
-                            let cellPhoto = Photo(
-                                pin: self.location,
-                                imageData: imageData!,
-                                context: self.sharedContext
+                            let alert = UIAlertController(
+                                title: "There was an error getting the image for cell \( indexPath.item ):",
+                                message: "\( imageError )",
+                                preferredStyle: UIAlertControllerStyle.Alert
                             )
                             
-                            CoreDataStackManager.sharedInstance().saveContext()
-                            
-                            // set the cell and save the image to the local cache
-                            dispatch_async( dispatch_get_main_queue() )
+                            let alertAction = UIAlertAction(
+                                title: "😓   😓   😓",
+                                style: UIAlertActionStyle.Cancel
+                            )
                             {
-                                self.localCache.updateValue( UIImage( data: imageData! )!, forKey: indexPath.item )
-                                cell.photoImageView.image = UIImage( data: imageData! )
-                                // self.localCache.updateValue( UIImage( data: imageData! )!, forKey: imageURL.description )
-                                // cell.didGetImage = true
-                                // self.location.photoAlbum.append( cellPhoto )
-                                // self.location.photoAlbum![ indexPath.item ] = cellPhoto
+                                action in
+                                
+                                return
                             }
                             
-                            // CoreDataStackManager.sharedInstance().saveContext()
+                            alert.addAction( alertAction )
+                            
+                            self.presentViewController(
+                                alert,
+                                animated: true,
+                                completion: nil
+                            )
+                        }
+                    }
+                    else
+                    {
+                        // create the Photo object with the downloaded data
+                        let cellPhoto = Photo(
+                            pin: self.location,
+                            imageData: imageData!,
+                            context: self.sharedContext
+                        )
+                        
+                        // update the local cache
+                        self.localCache.updateValue( UIImage( data: imageData! )!, forKey: indexPath.item )
+                        
+                        // save the context
+                        CoreDataStackManager.sharedInstance().saveContext()
+                        
+                        // set the cell
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            cell.photoImageView.image = UIImage( data: imageData! )
                         }
                     }
                 }
-                
-                // return cell
             }
+        }
         
         return cell
     }

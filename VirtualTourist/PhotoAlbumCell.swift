@@ -13,19 +13,4 @@ class PhotoAlbumCell: UICollectionViewCell
     // outlets
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var photoImageView: UIImageView!
-    
-    // var didGetImage: Bool = false
-    
-    // task for retrieving the image from Flickr
-    var imageTask: NSURLSessionTask? = nil
-//    var imageTask: NSURLSessionDataTask?
-//    {
-//        didSet
-//        {
-//            if let taskToCancel = oldValue
-//            {
-//                taskToCancel.cancel()
-//            }
-//        }
-//    }
 }

@@ -20,6 +20,7 @@ class Pin: NSManagedObject, MKAnnotation
     // instance properties
     @NSManaged var pinLatitude: Double
     @NSManaged var pinLongitude: Double
+    @NSManaged var photoAlbum: [ Photo ]
     
     var coordinate: CLLocationCoordinate2D
     {
@@ -28,8 +29,6 @@ class Pin: NSManagedObject, MKAnnotation
             longitude: pinLongitude
         )
     }
-    
-    @NSManaged var photoAlbum: [ Photo ] // = nil
     
     // for use with subsequent requests for new photo albums
     var nextFirstImage: Int?
@@ -52,11 +51,9 @@ class Pin: NSManagedObject, MKAnnotation
         
         // update the current pin number
         ++Pin.currentPinNumber
-        println( "Current Pin number: \( Pin.currentPinNumber )" )
         
         pinLatitude = coordinate.latitude
         pinLongitude = coordinate.longitude
-        // photoAlbum = [ Photo ]()
     }
     
     override init(

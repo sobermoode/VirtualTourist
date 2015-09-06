@@ -25,6 +25,7 @@ class PhotoAlbumViewController: UIViewController,
     
     // collections for the current photo album
     var currentAlbumInfo = [ NSURL ]()
+    var localCache = [ Int : UIImage ]()
     // var localCache = [ String : UIImage ]()
     var alreadyHaveImages: Bool = false
     
@@ -363,6 +364,11 @@ class PhotoAlbumViewController: UIViewController,
                 cell.photoImageView.image = cellImage
                 return cell
             }
+            else if let cellImage = localCache[ indexPath.item ]
+            {
+                cell.photoImageView.image = cellImage
+                return cell
+            }
             if true
             {
                 let imageURL = self.currentAlbumInfo[ indexPath.item ]
@@ -425,6 +431,7 @@ class PhotoAlbumViewController: UIViewController,
                             // set the cell and save the image to the local cache
                             dispatch_async( dispatch_get_main_queue() )
                             {
+                                self.localCache.updateValue( UIImage( data: imageData! )!, forKey: indexPath.item )
                                 cell.photoImageView.image = UIImage( data: imageData! )
                                 // self.localCache.updateValue( UIImage( data: imageData! )!, forKey: imageURL.description )
                                 // cell.didGetImage = true

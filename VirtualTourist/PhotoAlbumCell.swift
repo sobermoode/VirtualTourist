@@ -17,5 +17,15 @@ class PhotoAlbumCell: UICollectionViewCell
     // var didGetImage: Bool = false
     
     // task for retrieving the image from Flickr
-    var imageTask: NSURLSessionDataTask? = nil
+    var imageTask: NSURLSessionTask? = nil
+//    var imageTask: NSURLSessionDataTask?
+//    {
+//        didSet
+//        {
+//            if let taskToCancel = oldValue
+//            {
+//                taskToCancel.cancel()
+//            }
+//        }
+//    }
 }

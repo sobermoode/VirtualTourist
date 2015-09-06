@@ -340,11 +340,11 @@ class PhotoAlbumViewController: UIViewController,
     ) -> UICollectionViewCell
     {
         // dequeue a cell
-        if let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier(
             "photoAlbumCell",
             forIndexPath: indexPath
-        ) as? PhotoAlbumCell
-        {
+        ) as! PhotoAlbumCell
+        
             // let imageURL = self.currentAlbumInfo[ indexPath.item ]
             
             /*
@@ -355,6 +355,7 @@ class PhotoAlbumViewController: UIViewController,
                 return cell
             }
             */
+        
             if alreadyHaveImages
             {
                 // let photoImage = location.photoAlbum[ indexPath.item ].image
@@ -362,14 +363,14 @@ class PhotoAlbumViewController: UIViewController,
                 // let imageData = location.photoAlbum[ indexPath.item ].imageData
                 let cellImage = location.photoAlbum[ indexPath.item ].image
                 cell.photoImageView.image = cellImage
-                return cell
+                // return cell
             }
             else if let cellImage = localCache[ indexPath.item ]
             {
                 cell.photoImageView.image = cellImage
-                return cell
+                // return cell
             }
-            if true
+            else
             {
                 let imageURL = self.currentAlbumInfo[ indexPath.item ]
                 
@@ -444,22 +445,9 @@ class PhotoAlbumViewController: UIViewController,
                     }
                 }
                 
-                return cell
+                // return cell
             }
-        }
-        else
-        {
-            return UICollectionViewCell( frame: CGRect( x: 0, y: 0, width: 125, height: 108 ) )
-        }
         
-        // return UICollectionViewCell( frame: CGRect( x: 0, y: 0, width: 125, height: 108 ) )
-        
-        
-        /*
-        else
-        {
-            
-        }
-        */
+        return cell
     }
 }

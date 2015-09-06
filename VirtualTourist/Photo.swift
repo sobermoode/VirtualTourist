@@ -7,15 +7,43 @@
 //
 
 import UIKit
+import CoreData
 
-class Photo: NSObject
+@objc( Photo )
+
+class Photo: NSManagedObject
 {
-    var pin: Pin!
-    var image: UIImage!
+    @NSManaged var pin: Pin
+    @NSManaged var image: UIImage
     
-    init( pin: Pin, imageData: NSData )
+    init(
+        pin: Pin,
+        imageData: NSData,
+        context: NSManagedObjectContext
+    )
     {
+        let photoEntity = NSEntityDescription.entityForName(
+            "Photo",
+            inManagedObjectContext: context
+        )!
+        
+        super.init(
+            entity: photoEntity,
+            insertIntoManagedObjectContext: context
+        )
+        
         self.pin = pin
-        self.image = UIImage( data: imageData )
+        self.image = UIImage( data: imageData )!
+    }
+    
+    override init(
+        entity: NSEntityDescription,
+        insertIntoManagedObjectContext context: NSManagedObjectContext?
+    )
+    {
+        super.init(
+            entity: entity,
+            insertIntoManagedObjectContext: context
+        )
     }
 }

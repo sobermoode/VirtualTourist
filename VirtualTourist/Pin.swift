@@ -20,6 +20,7 @@ class Pin: NSManagedObject, MKAnnotation
     // instance properties
     @NSManaged var pinLatitude: Double
     @NSManaged var pinLongitude: Double
+    @NSManaged var photoAlbum: [ Photo ]
     
     var coordinate: CLLocationCoordinate2D
     {
@@ -28,8 +29,6 @@ class Pin: NSManagedObject, MKAnnotation
             longitude: pinLongitude
         )
     }
-    
-    var photoAlbum: [ Photo? ]? // = nil
     
     // for use with subsequent requests for new photo albums
     var nextFirstImage: Int?
@@ -52,7 +51,6 @@ class Pin: NSManagedObject, MKAnnotation
         
         // update the current pin number
         ++Pin.currentPinNumber
-        println( "Current Pin number: \( Pin.currentPinNumber )" )
         
         pinLatitude = coordinate.latitude
         pinLongitude = coordinate.longitude
@@ -85,6 +83,11 @@ class Pin: NSManagedObject, MKAnnotation
         if fetchError != nil
         {
             println( "There was an error fetching the pins from Core Data: \( fetchError )." )
+        }
+        
+        for pin in pins
+        {
+            println( "This Pin has \( pin.photoAlbum.count ) Photos." )
         }
         
         Pin.currentPinNumber = pins.count

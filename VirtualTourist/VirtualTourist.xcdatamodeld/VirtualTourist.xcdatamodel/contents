@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="7701" systemVersion="14F27" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
     <entity name="Photo" representedClassName="Photo" syncable="YES">
-        <attribute name="imageData" attributeType="Binary" syncable="YES"/>
+        <attribute name="image" attributeType="Transformable" syncable="YES"/>
         <relationship name="pin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pin" inverseName="photoAlbum" inverseEntity="Pin" syncable="YES"/>
     </entity>
     <entity name="Pin" representedClassName="Pin" syncable="YES">

@@ -14,8 +14,8 @@ import CoreData
 class Photo: NSManagedObject
 {
     @NSManaged var pin: Pin
-    @NSManaged var imageData: NSData
-    // @NSManaged var image: UIImage?
+    // @NSManaged var imageData: NSData
+    @NSManaged var image: UIImage
     
     init(
         pin: Pin,
@@ -36,9 +36,9 @@ class Photo: NSManagedObject
         )
         
         self.pin = pin
-        self.imageData = imageData
+        // self.imageData = imageData
         // self.imageData = NSData(data: imageData)
-        // self.image = UIImage( data: imageData )
+        self.image = UIImage( data: imageData )!
     }
     
     override init(

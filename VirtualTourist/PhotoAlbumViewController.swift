@@ -358,8 +358,8 @@ class PhotoAlbumViewController: UIViewController,
             {
                 // let photoImage = location.photoAlbum[ indexPath.item ].image
                 // println( "The Photo image is \( photoImage )" )
-                let imageData = location.photoAlbum[ indexPath.item ].imageData
-                let cellImage = UIImage( data: imageData )
+                // let imageData = location.photoAlbum[ indexPath.item ].imageData
+                let cellImage = location.photoAlbum[ indexPath.item ].image
                 cell.photoImageView.image = cellImage
                 return cell
             }

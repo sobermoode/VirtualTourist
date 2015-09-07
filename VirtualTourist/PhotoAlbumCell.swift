@@ -13,4 +13,6 @@ class PhotoAlbumCell: UICollectionViewCell
     // outlets
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var photoImageView: UIImageView!
+    
+    var imageTask: NSURLSessionDataTask?
 }

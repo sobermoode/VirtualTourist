@@ -26,8 +26,9 @@ class PhotoAlbumViewController: UIViewController,
     // results returned from Flickr
     var currentAlbumInfo = [ NSURL ]()
     
-    // images downloaded during this session
-    var localCache = [ Int : UIImage ]()
+    // local caches for images and their tasks
+    var imageCache = [ Int : UIImage ]()
+    var taskCache = [ Int : NSURLSessionDataTask ]()
     
     // a flag for determining whether or not we loaded a photo album from Core Data
     var alreadyHaveImages: Bool = false
@@ -291,14 +292,22 @@ class PhotoAlbumViewController: UIViewController,
         {
             let cellImage = location.photoAlbum[ indexPath.item ].image
             cell.photoImageView.image = cellImage
+            return cell
         }
         
         // no Core Data image, but check the local cache for an already-downloaded image
-        else if let cellImage = localCache[ indexPath.item ]
+        else if let cellImage = imageCache[ indexPath.item ]
         {
             cell.photoImageView.image = cellImage
+            return cell
         }
             
+        if let imageTask = taskCache[ indexPath.item ]
+        {
+            cell.imageTask = imageTask
+            return cell
+        }
+        
         // otherwise, we have to download images from Flickr
         else
         {
@@ -308,7 +317,7 @@ class PhotoAlbumViewController: UIViewController,
             dispatch_async( dispatch_get_main_queue() )
             {
                 // start the image task
-                FlickrClient.sharedInstance().taskForImage( imageURL )
+                let imageTask = FlickrClient.sharedInstance().taskForImage( imageURL )
                 {
                     imageData, imageError in
                     
@@ -351,8 +360,8 @@ class PhotoAlbumViewController: UIViewController,
                             context: self.sharedContext
                         )
                         
-                        // update the local cache
-                        self.localCache.updateValue( UIImage( data: imageData! )!, forKey: indexPath.item )
+                        // update the local image cache
+                        self.imageCache.updateValue( UIImage( data: imageData! )!, forKey: indexPath.item )
                         
                         // save the context
                         CoreDataStackManager.sharedInstance().saveContext()
@@ -364,9 +373,13 @@ class PhotoAlbumViewController: UIViewController,
                         }
                     }
                 }
+                
+                // set the cell task and update the local task cache
+                cell.imageTask = imageTask
+                self.taskCache.updateValue( imageTask, forKey: indexPath.item )
             }
+            
+            return cell
         }
-        
-        return cell
     }
 }

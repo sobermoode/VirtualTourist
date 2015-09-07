@@ -263,7 +263,7 @@ class FlickrClient: NSObject
     func taskForImage(
         imageURL: NSURL,
         completionHandler: ( imageData: NSData?, imageError: NSError? ) -> Void
-    )
+    ) -> NSURLSessionDataTask
     {
         let imageTask = session.dataTaskWithURL( imageURL )
         {
@@ -285,5 +285,7 @@ class FlickrClient: NSObject
             }
         }
         imageTask.resume()
+        
+        return imageTask
     }
 }

@@ -26,10 +26,6 @@ class PhotoAlbumViewController: UIViewController,
     // results returned from Flickr
     var currentAlbumInfo = [ NSURL ]()
     
-    // local caches for images and their tasks
-    var imageCache = [ Int : UIImage ]()
-    var taskCache = [ Int : NSURLSessionDataTask ]()
-    
     // a flag for determining whether or not we loaded a photo album from Core Data
     var alreadyHaveImages: Bool = false
     
@@ -219,13 +215,10 @@ class PhotoAlbumViewController: UIViewController,
                     // reload the collection view
                     dispatch_async( dispatch_get_main_queue() )
                     {
-                        // self.location.gotAllImages = true
                         self.photoAlbumCollection.reloadData()
                     }
                 }
             }
-            
-            self.location.gotAllImages = true
         }
     }
     
@@ -277,8 +270,6 @@ class PhotoAlbumViewController: UIViewController,
         }
     }
     
-    // NOTE:
-    // logic inspired by http://natashatherobot.com/ios-how-to-download-images-asynchronously-make-uitableview-scroll-fast/
     func collectionView(
         collectionView: UICollectionView,
         cellForItemAtIndexPath indexPath: NSIndexPath
@@ -298,105 +289,74 @@ class PhotoAlbumViewController: UIViewController,
             
             let cellImage = location.photoAlbum[ indexPath.item ].image
             cell.photoImageView.image = cellImage
-            return cell
-        }
-        
-        // no Core Data image, but check the local cache for an already-downloaded image
-        /*
-        else if let cellImage = imageCache[ indexPath.item ]
-        {
-            cell.activityIndicator.hidden = true
-            cell.activityIndicator.stopAnimating()
             
-            cell.photoImageView.image = cellImage
             return cell
         }
-        */
         
+        // if no images from Core Data, look for a cached image
+        // get a Photo at a valid index
         if !( indexPath.item >= location.photoAlbum.count )
         {
             if let cellPhoto = location.photoAlbum[ indexPath.item ]
             {
-                // println( "cellPhoto: \( cellPhoto )" )
-                // return cell
                 let filePath = cellPhoto.filePath!
                 
+                // return image data from the documents directory
                 FlickrClient.sharedInstance().taskForImageData( filePath )
                 {
                     imageData, taskError in
                     
+                    // something happened
                     if taskError != nil
                     {
-                        println( "There was an error getting the cached image: \( taskError )" )
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            let alert = UIAlertController(
+                                title: "There was an error getting a cached image:",
+                                message: "\( taskError )",
+                                preferredStyle: UIAlertControllerStyle.Alert
+                            )
+                            
+                            let alertAction = UIAlertAction(
+                                title: "😓   😓   😓",
+                                style: UIAlertActionStyle.Cancel
+                                )
+                            {
+                                action in
+                                
+                                return
+                            }
+                            
+                            alert.addAction( alertAction )
+                            
+                            self.presentViewController(
+                                alert,
+                                animated: true,
+                                completion: nil
+                            )
+                        }
                     }
                     else
                     {
+                        // put the image in the cell
                         let cellImage = UIImage( data: imageData! )
+                        
                         dispatch_async( dispatch_get_main_queue() )
                         {
                             cell.photoImageView.image = cellImage
                         }
                     }
                 }
-                // let cellImage = UIImage( named: imageName )!
-                // cell.photoImageView.image = cellImage
+                
                 return cell
             }
-            return cell
-        }
-        
-            /*
-        else if let cellImage = UIImage( named: "pin\( location.pinNumber! )-image\( indexPath.item )" )
-        {
-            println( "\n\n\nGot image \( cellImage.description ) for indexPath \( indexPath.item )" )
-            cell.activityIndicator.hidden = true
-            cell.activityIndicator.stopAnimating()
-            
-            cell.photoImageView.image = cellImage
-            return cell
-        }
-        */
-        
-        /*
-        if indexPath.item < location.photoAlbum.count
-        {
-            println( "Photo: \( location.photoAlbum[ indexPath.item ] )" )
-            if let filePath = location.photoAlbum[ indexPath.item ].filePath
-            {
-                println( "Getting saved image data..." )
-                FlickrClient.sharedInstance().taskForImageData(location.photoAlbum[ indexPath.item ].filePath!)
-                {
-                    imageData, taskError in
-                    
-                    if taskError != nil
-                    {
-                        println( "There was an error getting the saved image data: \( taskError )" )
-                    }
-                    else
-                    {
-                        cell.photoImageView.image = UIImage( data: imageData! )
-                    }
-                }
-            }
             
             return cell
         }
-        */
-        
-        /*
-        if let imageTask = taskCache[ indexPath.item ]
-        {
-            // imageTask.cancel()
-            // println( "\n\n\nCanceling its previous task..." )
-            cell.imageTask = imageTask
-            return cell
-        }
-        */
         
         // otherwise, we have to download images from Flickr
         else
         {
-            println( "\n\n\nStarting a new task..." )
             cell.activityIndicator.hidden = false
             cell.activityIndicator.startAnimating()
             cell.photoImageView.image = UIImage( named: "placeholder" )
@@ -450,13 +410,12 @@ class PhotoAlbumViewController: UIViewController,
                             context: self.sharedContext
                         )
                         
-                        imageData!.writeToURL(cellPhoto.filePath!, options: nil, error: nil)
-                        
-                        println( "Created a Photo file name: \( cellPhoto.fileName! )" )
-                        println( "Created a Photo at file path: \( cellPhoto.filePath! )" )
-                        
-                        // update the local image cache
-                        self.imageCache.updateValue( UIImage( data: imageData! )!, forKey: indexPath.item )
+                        // write the image to the documents directory for caching
+                        imageData!.writeToURL(
+                            cellPhoto.filePath!,
+                            options: nil,
+                            error: nil
+                        )
                         
                         // save the context
                         CoreDataStackManager.sharedInstance().saveContext()
@@ -470,10 +429,6 @@ class PhotoAlbumViewController: UIViewController,
                         }
                     }
                 }
-                
-                // set the cell task and update the local task cache
-                cell.imageTask = imageTask
-                self.taskCache.updateValue( imageTask, forKey: indexPath.item )
             }
             
             return cell

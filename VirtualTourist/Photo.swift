@@ -15,8 +15,8 @@ class Photo: NSManagedObject
 {
     @NSManaged var pin: Pin
     @NSManaged var image: UIImage
+    
     var fileName: String?
-    // var filePath: String?
     var filePath: NSURL?
     
     init(
@@ -40,12 +40,7 @@ class Photo: NSManagedObject
         
         let imageNumber = pin.photoAlbum.count + 1
         self.fileName = "pin\( pin.pinNumber! )-image\( imageNumber )"
-        
-        // let imageFileURL = createImageFileURL()
-        // println( "imageFileURL: \( imageFileURL )" )
         self.filePath = createImageFileURL()
-        // imageData.writeToURL( self.filePath!, options: nil, error: nil)
-        // self.filePath = imageFileURL.path!
     }
     
     override init(
@@ -66,9 +61,4 @@ class Photo: NSManagedObject
         
         return NSURL.fileURLWithPathComponents( pathArray )!
     }
-    
-//    func imageDataForPhoto -> NSData?
-//    {
-//        
-//    }
 }

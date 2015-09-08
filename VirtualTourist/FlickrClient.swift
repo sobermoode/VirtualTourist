@@ -289,21 +289,28 @@ class FlickrClient: NSObject
         return imageTask
     }
     
-    func taskForImageData( filePath: NSURL, completionHandler: ( imageData: NSData?, taskError: NSError? ) -> Void )
+    func taskForImageData(
+        filePath: NSURL,
+        completionHandler: ( imageData: NSData?, taskError: NSError? ) -> Void
+    )
     {
-        println( "taskForImageData..." )
-        // let fileURL = NSURL( string: filePath )!
         let imageDataTask = session.dataTaskWithURL( filePath )
         {
             imageData, taskResponse, taskError in
             
             if taskError != nil
             {
-                completionHandler(imageData: nil, taskError: taskError)
+                completionHandler(
+                    imageData: nil,
+                    taskError: taskError
+                )
             }
             else
             {
-                completionHandler(imageData: imageData, taskError: nil)
+                completionHandler(
+                    imageData: imageData,
+                    taskError: nil
+                )
             }
         }
         imageDataTask.resume()

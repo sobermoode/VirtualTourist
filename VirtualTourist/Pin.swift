@@ -21,9 +21,8 @@ class Pin: NSManagedObject, MKAnnotation
     @NSManaged var pinLatitude: Double
     @NSManaged var pinLongitude: Double
     @NSManaged var photoAlbum: [ Photo! ]
-    var pinNumber: Int?
-    var gotAllImages: Bool = false
     
+    var pinNumber: Int?    
     var coordinate: CLLocationCoordinate2D
     {
         return CLLocationCoordinate2D(

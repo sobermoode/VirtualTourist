@@ -26,10 +26,6 @@ class PhotoAlbumViewController: UIViewController,
     // results returned from Flickr
     var currentAlbumInfo = [ NSURL ]()
     
-    // local caches for images and their tasks
-    var imageCache = [ Int : UIImage ]()
-    var taskCache = [ Int : NSURLSessionDataTask ]()
-    
     // a flag for determining whether or not we loaded a photo album from Core Data
     var alreadyHaveImages: Bool = false
     
@@ -274,8 +270,6 @@ class PhotoAlbumViewController: UIViewController,
         }
     }
     
-    // NOTE:
-    // logic inspired by http://natashatherobot.com/ios-how-to-download-images-asynchronously-make-uitableview-scroll-fast/
     func collectionView(
         collectionView: UICollectionView,
         cellForItemAtIndexPath indexPath: NSIndexPath
@@ -290,27 +284,83 @@ class PhotoAlbumViewController: UIViewController,
         // the Pin came with a Photo from Core Data
         if alreadyHaveImages
         {
+            cell.activityIndicator.hidden = true
+            cell.activityIndicator.stopAnimating()
+            
             let cellImage = location.photoAlbum[ indexPath.item ].image
             cell.photoImageView.image = cellImage
+            
             return cell
         }
         
-        // no Core Data image, but check the local cache for an already-downloaded image
-        else if let cellImage = imageCache[ indexPath.item ]
+        // if no images from Core Data, look for a cached image
+        // get a Photo at a valid index
+        if !( indexPath.item >= location.photoAlbum.count )
         {
-            cell.photoImageView.image = cellImage
-            return cell
-        }
+            if let cellPhoto = location.photoAlbum[ indexPath.item ]
+            {
+                let filePath = cellPhoto.filePath!
+                
+                // return image data from the documents directory
+                FlickrClient.sharedInstance().taskForImageData( filePath )
+                {
+                    imageData, taskError in
+                    
+                    // something happened
+                    if taskError != nil
+                    {
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            let alert = UIAlertController(
+                                title: "There was an error getting a cached image:",
+                                message: "\( taskError )",
+                                preferredStyle: UIAlertControllerStyle.Alert
+                            )
+                            
+                            let alertAction = UIAlertAction(
+                                title: "😓   😓   😓",
+                                style: UIAlertActionStyle.Cancel
+                                )
+                            {
+                                action in
+                                
+                                return
+                            }
+                            
+                            alert.addAction( alertAction )
+                            
+                            self.presentViewController(
+                                alert,
+                                animated: true,
+                                completion: nil
+                            )
+                        }
+                    }
+                    else
+                    {
+                        // put the image in the cell
+                        let cellImage = UIImage( data: imageData! )
+                        
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            cell.photoImageView.image = cellImage
+                        }
+                    }
+                }
+                
+                return cell
+            }
             
-        if let imageTask = taskCache[ indexPath.item ]
-        {
-            cell.imageTask = imageTask
             return cell
         }
         
         // otherwise, we have to download images from Flickr
         else
         {
+            cell.activityIndicator.hidden = false
+            cell.activityIndicator.startAnimating()
+            cell.photoImageView.image = UIImage( named: "placeholder" )
+            
             // get the URL for the image
             let imageURL = self.currentAlbumInfo[ indexPath.item ]
             
@@ -360,8 +410,12 @@ class PhotoAlbumViewController: UIViewController,
                             context: self.sharedContext
                         )
                         
-                        // update the local image cache
-                        self.imageCache.updateValue( UIImage( data: imageData! )!, forKey: indexPath.item )
+                        // write the image to the documents directory for caching
+                        imageData!.writeToURL(
+                            cellPhoto.filePath!,
+                            options: nil,
+                            error: nil
+                        )
                         
                         // save the context
                         CoreDataStackManager.sharedInstance().saveContext()
@@ -369,14 +423,12 @@ class PhotoAlbumViewController: UIViewController,
                         // set the cell
                         dispatch_async( dispatch_get_main_queue() )
                         {
+                            cell.activityIndicator.hidden = true
+                            cell.activityIndicator.stopAnimating()
                             cell.photoImageView.image = UIImage( data: imageData! )
                         }
                     }
                 }
-                
-                // set the cell task and update the local task cache
-                cell.imageTask = imageTask
-                self.taskCache.updateValue( imageTask, forKey: indexPath.item )
             }
             
             return cell

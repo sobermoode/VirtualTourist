@@ -15,14 +15,14 @@ import CoreData
 class Pin: NSManagedObject, MKAnnotation
 {
     // class properties
-    static var currentPinNumber: Int = 0
+    static var currentPinNumber: Int16 = 0
     
     // instance properties
     @NSManaged var pinLatitude: Double
     @NSManaged var pinLongitude: Double
     @NSManaged var photoAlbum: [ Photo! ]
     
-    var pinNumber: Int?    
+    @NSManaged var pinNumber: Int16
     var coordinate: CLLocationCoordinate2D
     {
         return CLLocationCoordinate2D(
@@ -92,7 +92,7 @@ class Pin: NSManagedObject, MKAnnotation
             println( "This Pin has \( pin.photoAlbum.count ) Photos." )
         }
         
-        Pin.currentPinNumber = pins.count
+        Pin.currentPinNumber = Int16( pins.count )
         
         return ( pins.count > 0 ) ? pins : nil
     }

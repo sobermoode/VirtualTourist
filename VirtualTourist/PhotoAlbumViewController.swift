@@ -129,6 +129,35 @@ class PhotoAlbumViewController: UIViewController,
     
     func newCollection( sender: UIButton? )
     {
+//        if alreadyHaveImages
+//        {
+//            alreadyHaveImages = false
+//            // location.photoAlbum = []
+//            for photo in location.photoAlbum
+//            {
+//                sharedContext.deleteObject( photo )
+//            }
+//            CoreDataStackManager.sharedInstance().saveContext()
+//        }
+        
+//        if !location.photoAlbum.isEmpty
+//        {
+//            for photo in location.photoAlbum
+//            {
+//                sharedContext.deleteObject( photo )
+//            }
+//            CoreDataStackManager.sharedInstance().saveContext()
+//        }
+        
+        alreadyHaveImages = false
+        currentAlbumInfo.removeAll(keepCapacity: false)
+        
+        for photo in location.photoAlbum
+        {
+            sharedContext.deleteObject( photo )
+        }
+        CoreDataStackManager.sharedInstance().saveContext()
+        
         // initiate the Flickr request for the photo album
         FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location )
         {

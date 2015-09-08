@@ -266,16 +266,16 @@
                                             <rect key="frame" x="0.0" y="0.0" width="115" height="108"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="8tq-b0-MRJ">
-                                                    <rect key="frame" x="-10" y="-10" width="20" height="20"/>
-                                                    <color key="color" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                </activityIndicatorView>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="d90-x4-ocM">
                                                     <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
                                                     <variation key="widthClass=compact" fixedFrame="YES">
                                                         <rect key="frame" x="0.0" y="0.0" width="125" height="108"/>
                                                     </variation>
                                                 </imageView>
+                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="8tq-b0-MRJ">
+                                                    <rect key="frame" x="-10" y="-10" width="20" height="20"/>
+                                                    <color key="color" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                                </activityIndicatorView>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
@@ -291,8 +291,8 @@
                                         </constraints>
                                         <variation key="default">
                                             <mask key="subviews">
-                                                <exclude reference="8tq-b0-MRJ"/>
                                                 <exclude reference="d90-x4-ocM"/>
+                                                <exclude reference="8tq-b0-MRJ"/>
                                             </mask>
                                             <mask key="constraints">
                                                 <exclude reference="2T0-0z-Wwr"/>
@@ -306,8 +306,8 @@
                                         </variation>
                                         <variation key="widthClass=compact">
                                             <mask key="subviews">
-                                                <include reference="8tq-b0-MRJ"/>
                                                 <include reference="d90-x4-ocM"/>
+                                                <include reference="8tq-b0-MRJ"/>
                                             </mask>
                                             <mask key="constraints">
                                                 <include reference="2T0-0z-Wwr"/>

@@ -20,7 +20,9 @@ class Pin: NSManagedObject, MKAnnotation
     // instance properties
     @NSManaged var pinLatitude: Double
     @NSManaged var pinLongitude: Double
-    @NSManaged var photoAlbum: [ Photo ]
+    @NSManaged var photoAlbum: [ Photo! ]
+    var pinNumber: Int?
+    var gotAllImages: Bool = false
     
     var coordinate: CLLocationCoordinate2D
     {
@@ -52,6 +54,7 @@ class Pin: NSManagedObject, MKAnnotation
         // update the current pin number
         ++Pin.currentPinNumber
         
+        pinNumber = Pin.currentPinNumber
         pinLatitude = coordinate.latitude
         pinLongitude = coordinate.longitude
     }

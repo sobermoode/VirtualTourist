@@ -219,10 +219,13 @@ class PhotoAlbumViewController: UIViewController,
                     // reload the collection view
                     dispatch_async( dispatch_get_main_queue() )
                     {
+                        // self.location.gotAllImages = true
                         self.photoAlbumCollection.reloadData()
                     }
                 }
             }
+            
+            self.location.gotAllImages = true
         }
     }
     
@@ -290,27 +293,114 @@ class PhotoAlbumViewController: UIViewController,
         // the Pin came with a Photo from Core Data
         if alreadyHaveImages
         {
+            cell.activityIndicator.hidden = true
+            cell.activityIndicator.stopAnimating()
+            
             let cellImage = location.photoAlbum[ indexPath.item ].image
             cell.photoImageView.image = cellImage
             return cell
         }
         
         // no Core Data image, but check the local cache for an already-downloaded image
+        /*
         else if let cellImage = imageCache[ indexPath.item ]
         {
+            cell.activityIndicator.hidden = true
+            cell.activityIndicator.stopAnimating()
+            
             cell.photoImageView.image = cellImage
             return cell
         }
+        */
+        
+        if !( indexPath.item >= location.photoAlbum.count )
+        {
+            if let cellPhoto = location.photoAlbum[ indexPath.item ]
+            {
+                // println( "cellPhoto: \( cellPhoto )" )
+                // return cell
+                let filePath = cellPhoto.filePath!
+                
+                FlickrClient.sharedInstance().taskForImageData( filePath )
+                {
+                    imageData, taskError in
+                    
+                    if taskError != nil
+                    {
+                        println( "There was an error getting the cached image: \( taskError )" )
+                    }
+                    else
+                    {
+                        let cellImage = UIImage( data: imageData! )
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            cell.photoImageView.image = cellImage
+                        }
+                    }
+                }
+                // let cellImage = UIImage( named: imageName )!
+                // cell.photoImageView.image = cellImage
+                return cell
+            }
+            return cell
+        }
+        
+            /*
+        else if let cellImage = UIImage( named: "pin\( location.pinNumber! )-image\( indexPath.item )" )
+        {
+            println( "\n\n\nGot image \( cellImage.description ) for indexPath \( indexPath.item )" )
+            cell.activityIndicator.hidden = true
+            cell.activityIndicator.stopAnimating()
             
+            cell.photoImageView.image = cellImage
+            return cell
+        }
+        */
+        
+        /*
+        if indexPath.item < location.photoAlbum.count
+        {
+            println( "Photo: \( location.photoAlbum[ indexPath.item ] )" )
+            if let filePath = location.photoAlbum[ indexPath.item ].filePath
+            {
+                println( "Getting saved image data..." )
+                FlickrClient.sharedInstance().taskForImageData(location.photoAlbum[ indexPath.item ].filePath!)
+                {
+                    imageData, taskError in
+                    
+                    if taskError != nil
+                    {
+                        println( "There was an error getting the saved image data: \( taskError )" )
+                    }
+                    else
+                    {
+                        cell.photoImageView.image = UIImage( data: imageData! )
+                    }
+                }
+            }
+            
+            return cell
+        }
+        */
+        
+        /*
         if let imageTask = taskCache[ indexPath.item ]
         {
+            // imageTask.cancel()
+            // println( "\n\n\nCanceling its previous task..." )
             cell.imageTask = imageTask
             return cell
         }
+        */
         
         // otherwise, we have to download images from Flickr
         else
         {
+            println( "\n\n\nStarting a new task..." )
+            cell.activityIndicator.hidden = false
+            cell.activityIndicator.startAnimating()
+            cell.photoImageView.image = UIImage( named: "placeholder" )
+            
             // get the URL for the image
             let imageURL = self.currentAlbumInfo[ indexPath.item ]
             
@@ -360,6 +450,11 @@ class PhotoAlbumViewController: UIViewController,
                             context: self.sharedContext
                         )
                         
+                        imageData!.writeToURL(cellPhoto.filePath!, options: nil, error: nil)
+                        
+                        println( "Created a Photo file name: \( cellPhoto.fileName! )" )
+                        println( "Created a Photo at file path: \( cellPhoto.filePath! )" )
+                        
                         // update the local image cache
                         self.imageCache.updateValue( UIImage( data: imageData! )!, forKey: indexPath.item )
                         
@@ -369,6 +464,8 @@ class PhotoAlbumViewController: UIViewController,
                         // set the cell
                         dispatch_async( dispatch_get_main_queue() )
                         {
+                            cell.activityIndicator.hidden = true
+                            cell.activityIndicator.stopAnimating()
                             cell.photoImageView.image = UIImage( data: imageData! )
                         }
                     }

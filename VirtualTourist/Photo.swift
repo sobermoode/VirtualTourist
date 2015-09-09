@@ -39,7 +39,7 @@ class Photo: NSManagedObject
         self.image = UIImage( data: imageData )!
         
         let imageNumber = pin.photoAlbum.count + 1
-        self.fileName = "pin\( pin.pinNumber! )-image\( imageNumber )"
+        self.fileName = "pin\( pin.pinNumber )-image\( imageNumber )"
         self.filePath = createImageFileURL()
     }
     

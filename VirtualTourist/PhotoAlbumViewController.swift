@@ -34,6 +34,15 @@ class PhotoAlbumViewController: UIViewController,
         return CoreDataStackManager.sharedInstance().managedObjectContext!
     }()
     
+    // for use with toggling the New Collection/Remove Items button
+    var defaultColor: UIColor!
+    enum NewCollectionButtonState
+    {
+        case NewCollection
+        case RemoveSelected
+    }
+    var buttonIsToggled: Bool = false
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -50,6 +59,9 @@ class PhotoAlbumViewController: UIViewController,
             action: "newCollection:",
             forControlEvents: .TouchUpInside
         )
+        
+        // the default UIButton text color is not a UIColor preset; this is one way to get it
+        defaultColor = self.view.tintColor
         
         // set the collection view properties
         photoAlbumCollection.allowsMultipleSelection = true
@@ -129,6 +141,17 @@ class PhotoAlbumViewController: UIViewController,
     
     func newCollection( sender: UIButton? )
     {
+        // reset flag and local store
+        alreadyHaveImages = false
+        currentAlbumInfo.removeAll( keepCapacity: false )
+        
+        // remove the current set of Photos from Core Data
+        for photo in location.photoAlbum
+        {
+            sharedContext.deleteObject( photo )
+        }
+        CoreDataStackManager.sharedInstance().saveContext()
+        
         // initiate the Flickr request for the photo album
         FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location )
         {
@@ -222,6 +245,99 @@ class PhotoAlbumViewController: UIViewController,
         }
     }
     
+    // remove the selected items from the collection view
+    func removeItems( sender: UIButton )
+    {
+        // get the selected index paths
+        let selectedIndexPaths = photoAlbumCollection.indexPathsForSelectedItems() as! [ NSIndexPath ]
+        
+        // create an array of indexes from the index paths;
+        // sort the indexes, then reverse them
+        // (i was experiencing some strangeitude, where, beyond a certain point in the collection view,
+        // the selected items weren't being returned in a logical order. upon removing them, an array
+        // index out-of-bounds exception would get thrown, when the collection view tried to access
+        // an item at an index that now was outside the max for the number of items it still contained.
+        // (it's probably difficult to envision what was happening. trust me, this fixed it, even if
+        // it looks horribly inefficent, and just strange, in-and-of-itself)).
+        var selectedItems = [ Int ]()
+        for indexPath in selectedIndexPaths
+        {
+            selectedItems.append( indexPath.item )
+        }
+        
+        var sortedItems = sorted( selectedItems )
+        {
+            item1, item2 in
+            
+            return item1 < item2
+        }
+        let reversedItems = sortedItems.reverse()
+        
+        // delete the Photos from the album;
+        // if we're working with a new collection and haven't fetched them from Core Data, also delete them from the local URL info array,
+        // which is part of the data source
+        for item in reversedItems
+        {
+            let photo = location.photoAlbum[ item ]
+            sharedContext.deleteObject( photo )
+            
+            if !alreadyHaveImages
+            {
+                currentAlbumInfo.removeAtIndex( item )
+            }
+        }
+        
+        // save the context
+        CoreDataStackManager.sharedInstance().saveContext()
+        
+        // delete the items from the collection view
+        photoAlbumCollection.deleteItemsAtIndexPaths( selectedIndexPaths )
+        
+        // return the button to its default state
+        toggleButton( NewCollectionButtonState.NewCollection )
+    }
+    
+    // toggle the text and functionality of the button
+    func toggleButton( state: NewCollectionButtonState )
+    {
+        switch state
+        {
+            // set the button to retrieve a new photo album
+            case .NewCollection:
+                newCollectionButton.setTitle( "New Collection", forState: UIControlState.Normal )
+                newCollectionButton.setTitleColor( defaultColor, forState: UIControlState.Normal )
+                newCollectionButton.removeTarget(
+                    self,
+                    action: "removeItems:",
+                    forControlEvents: .TouchUpInside
+                )
+                newCollectionButton.addTarget(
+                    self,
+                    action: "newCollection:",
+                    forControlEvents: .TouchUpInside
+                )
+            
+                buttonIsToggled = false
+            
+            // set the button to remove items from the collection view
+            case .RemoveSelected:
+                newCollectionButton.setTitle( "Remove Selected Items", forState: UIControlState.Normal )
+                newCollectionButton.setTitleColor( UIColor.redColor(), forState: UIControlState.Normal )
+                newCollectionButton.removeTarget(
+                    self,
+                    action: "newCollection:",
+                    forControlEvents: .TouchUpInside
+                )
+                newCollectionButton.addTarget(
+                    self,
+                    action: "removeItems:",
+                    forControlEvents: .TouchUpInside
+                )
+            
+                buttonIsToggled = true
+        }
+    }
+    
     // MARK: MKMapViewDelegate functions
     
     func mapView(
@@ -280,6 +396,9 @@ class PhotoAlbumViewController: UIViewController,
             "photoAlbumCell",
             forIndexPath: indexPath
         ) as! PhotoAlbumCell
+        
+        // set cell selection state
+        cell.alpha = ( cell.selected ) ? 0.35 : 1.0
         
         // the Pin came with a Photo from Core Data
         if alreadyHaveImages
@@ -432,6 +551,42 @@ class PhotoAlbumViewController: UIViewController,
             }
             
             return cell
+        }
+    }
+    
+    func collectionView(
+        collectionView: UICollectionView,
+        didSelectItemAtIndexPath indexPath: NSIndexPath
+    )
+    {
+        let cell = collectionView.cellForItemAtIndexPath( indexPath ) as! PhotoAlbumCell
+        
+        // toggle button if necessary
+        if collectionView.indexPathsForSelectedItems().count > 0 && !buttonIsToggled
+        {
+            toggleButton( NewCollectionButtonState.RemoveSelected )
+        }
+        
+        // set cell selected state
+        cell.selected = true
+        cell.alpha = 0.35
+    }
+    
+    func collectionView(
+        collectionView: UICollectionView,
+        didDeselectItemAtIndexPath indexPath: NSIndexPath
+    )
+    {
+        let cell = collectionView.cellForItemAtIndexPath( indexPath ) as! PhotoAlbumCell
+        
+        // set cell deselected state
+        cell.selected = false
+        cell.alpha = 1.0
+        
+        // toggle button if necessary
+        if collectionView.indexPathsForSelectedItems().count == 0
+        {
+            toggleButton( NewCollectionButtonState.NewCollection )
         }
     }
 }

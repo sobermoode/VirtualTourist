@@ -165,8 +165,8 @@ class PhotoAlbumViewController: UIViewController,
                     self.photoAlbumCollection.hidden = true
                     
                     let alert = UIAlertController(
-                        title: "There was an error requesting the photos from Flickr:",
-                        message: "\( photoAlbumError )",
+                        title: "There was an error requesting the photos from Flickr",
+                        message: "\( photoAlbumError!.localizedDescription )",
                         preferredStyle: UIAlertControllerStyle.Alert
                     )
                     
@@ -432,7 +432,7 @@ class PhotoAlbumViewController: UIViewController,
                         {
                             let alert = UIAlertController(
                                 title: "There was an error getting a cached image:",
-                                message: "\( taskError )",
+                                message: "\( taskError!.localizedDescription )",
                                 preferredStyle: UIAlertControllerStyle.Alert
                             )
                             
@@ -496,8 +496,8 @@ class PhotoAlbumViewController: UIViewController,
                         dispatch_async( dispatch_get_main_queue() )
                         {
                             let alert = UIAlertController(
-                                title: "There was an error getting the image for cell \( indexPath.item ):",
-                                message: "\( imageError )",
+                                title: "Couldn't retrieve one of the photos.",
+                                message: "\( imageError!.localizedDescription )",
                                 preferredStyle: UIAlertControllerStyle.Alert
                             )
                             

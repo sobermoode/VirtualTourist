@@ -153,10 +153,15 @@ class FlickrClient: NSObject
                     if photoArray.count != 0
                     {
                         // take a sub-section of the result set, as configured above;
-                        // get next section of the result set if a new album is requested
+                        // get next section of the result set if a new album is requested (in current session; see below)
                         // NOTE: this code is imperfect; if the result set is less than ( self.maxImagesToShow * 2 ),
                         // requesting a new collection will yield the exact same set of images. otherwise, it will
                         // get a new full album, until the next set contains less than ( self.maxImagesToShow * 2 ).
+                        // ALSO: if you drop and pin, look at the photo album, quit the app, look at the same photo album,
+                        // and then request a new collection, you'll get the exact same results. a new request always
+                        // returns the first set of results, so the new collection will be the same as the old collection
+                        // (since both requests were for the first set of results). you could end up seeing the same collection
+                        // many times in a row, and think something is faulty, when in fact, that's how its "supposed" to work.
                         // set the counter to zero if there is only one result, to avoid array index out-of-bounds error
                         var startPhoto, endPhoto: Int
                         var dontSetNextFirstImage: Bool = false

@@ -248,7 +248,53 @@ class PhotoAlbumViewController: UIViewController,
     // remove the selected items from the collection view
     func removeItems( sender: UIButton )
     {
-        println( "removeItems..." )
+        // get the selected index paths
+        let selectedIndexPaths = photoAlbumCollection.indexPathsForSelectedItems() as! [ NSIndexPath ]
+        
+        // create an array of indexes from the index paths;
+        // sort the indexes, then reverse them
+        // (i was experiencing some strangeitude, where, beyond a certain point in the collection view,
+        // the selected items weren't being returned in a logical order. upon removing them, an array
+        // index out-of-bounds exception would get thrown, when the collection view tried to access
+        // an item at an index that now was outside the max for the number of items it still contained.
+        // (it's probably difficult to envision what was happening. trust me, this fixed it, even if
+        // it looks horribly inefficent, and just strange, in-and-of-itself)).
+        var selectedItems = [ Int ]()
+        for indexPath in selectedIndexPaths
+        {
+            selectedItems.append( indexPath.item )
+        }
+        
+        var sortedItems = sorted( selectedItems )
+        {
+            item1, item2 in
+            
+            return item1 < item2
+        }
+        let reversedItems = sortedItems.reverse()
+        
+        // delete the Photos from the album;
+        // if we're working with a new collection and haven't fetched them from Core Data, also delete them from the local URL info array,
+        // which is part of the data source
+        for item in reversedItems
+        {
+            let photo = location.photoAlbum[ item ]
+            sharedContext.deleteObject( photo )
+            
+            if !alreadyHaveImages
+            {
+                currentAlbumInfo.removeAtIndex( item )
+            }
+        }
+        
+        // save the context
+        CoreDataStackManager.sharedInstance().saveContext()
+        
+        // delete the items from the collection view
+        photoAlbumCollection.deleteItemsAtIndexPaths( selectedIndexPaths )
+        
+        // return the button to its default state
+        toggleButton( NewCollectionButtonState.NewCollection )
     }
     
     // toggle the text and functionality of the button

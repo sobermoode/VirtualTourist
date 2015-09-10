@@ -179,6 +179,9 @@ class TravelMapViewController: UIViewController,
                 // create a Pin
                 let newPin = Pin( coordinate: mapCoordinate, context: sharedContext )
                 
+                // make the Flickr request for the photo results
+                getFlickrResults( newPin )
+                
                 // add the pin to the map
                 mapView.addAnnotation( newPin )
                 
@@ -197,6 +200,46 @@ class TravelMapViewController: UIViewController,
             
             default:
                 return
+        }
+    }
+    
+    func getFlickrResults( pin: Pin )
+    {
+        FlickrClient.sharedInstance().getResultsForLocation( pin )
+        {
+            resultsError in
+            
+            // there was an error with the request
+            if resultsError != nil
+            {
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    let alert = UIAlertController(
+                        title: "There was an error requesting photo information from Flickr",
+                        message: "\( resultsError!.localizedDescription )",
+                        preferredStyle: UIAlertControllerStyle.Alert
+                    )
+                    
+                    let alertAction = UIAlertAction(
+                        title: "Drop another pin",
+                        style: UIAlertActionStyle.Cancel
+                        )
+                    {
+                        action in
+                        
+                        // remove the Pin; the photo album view controller won't have anything to work with
+                        self.mapView.removeAnnotation( pin )
+                    }
+                    
+                    alert.addAction( alertAction )
+                    
+                    self.presentViewController(
+                        alert,
+                        animated: true,
+                        completion: nil
+                    )
+                }
+            }
         }
     }
     

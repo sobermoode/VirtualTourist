@@ -40,6 +40,7 @@ class Pin: NSManagedObject, MKAnnotation
     )
     {
         println( "Creating a new Pin..." )
+        // give the Pin to the context
         let pinEntity = NSEntityDescription.entityForName(
             "Pin",
             inManagedObjectContext: context

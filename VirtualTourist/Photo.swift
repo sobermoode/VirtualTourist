@@ -14,17 +14,19 @@ import CoreData
 class Photo: NSManagedObject
 {
     @NSManaged var pin: Pin
-    @NSManaged var image: UIImage
+    // @NSManaged var image: UIImage
     
     var fileName: String?
     var filePath: NSURL?
+    var imageURL: NSURL?
     
     init(
         pin: Pin,
-        imageData: NSData,
+        imageInfo: [ String : AnyObject ],
         context: NSManagedObjectContext
     )
     {
+        // give the Photo to the context
         let photoEntity = NSEntityDescription.entityForName(
             "Photo",
             inManagedObjectContext: context
@@ -35,12 +37,17 @@ class Photo: NSManagedObject
             insertIntoManagedObjectContext: context
         )
         
+        // set the Pin relationship
         self.pin = pin
-        self.image = UIImage( data: imageData )!
+        // self.image = UIImage( data: imageData )!
         
+        // create a unique file name and path on the device for the Photo
         let imageNumber = pin.photoAlbum.count + 1
         self.fileName = "pin\( pin.pinNumber )-image\( imageNumber )"
-        self.filePath = createImageFileURL()
+        // self.filePath = createImageFileURL()
+        
+        // create a URL to the image on Flickr for a subsequent request
+        self.imageURL = urlForImageInfo( imageInfo )
     }
     
     override init(
@@ -54,11 +61,29 @@ class Photo: NSManagedObject
         )
     }
     
-    func createImageFileURL() -> NSURL
+    // creates a URL to the file saved on the device
+    func createImageFileURL()
     {
-        let directoryPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
+        let directoryPath = NSSearchPathForDirectoriesInDomains(
+            .DocumentDirectory,
+            .UserDomainMask,
+            true
+        )[0] as! String
         let pathArray = [ directoryPath, self.fileName! ]
         
-        return NSURL.fileURLWithPathComponents( pathArray )!
+        self.filePath = NSURL.fileURLWithPathComponents( pathArray )!
+    }
+    
+    // creates an NSURL to an actual image from an info dictionary returned from Flickr
+    func urlForImageInfo( imageInfo: [ String : AnyObject ] ) -> NSURL!
+    {
+        let farmID = imageInfo[ "farm" ] as! Int
+        let serverID = imageInfo[ "server" ] as! String
+        let photoID = imageInfo[ "id" ] as! String
+        let secret = imageInfo[ "secret" ] as! String
+        
+        let imageURLString = "https://farm\( farmID ).staticflickr.com/\( serverID )/\( photoID )_\( secret ).jpg"
+        
+        return NSURL( string: imageURLString )!
     }
 }

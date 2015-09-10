@@ -24,10 +24,10 @@ class PhotoAlbumViewController: UIViewController,
     var location: Pin!
     
     // results returned from Flickr
-    var currentAlbumInfo = [ NSURL ]()
+    // var currentAlbumInfo = [ NSURL ]()
     
     // a flag for determining whether or not we loaded a photo album from Core Data
-    var alreadyHaveImages: Bool = false
+    // var alreadyHaveImages: Bool = false
     
     lazy var sharedContext: NSManagedObjectContext =
     {
@@ -73,6 +73,7 @@ class PhotoAlbumViewController: UIViewController,
         noImagesLabel.hidden  = true
     }
     
+    /*
     override func viewWillAppear( animated: Bool )
     {
         // we fetched a photo album from Core Data, or there's a local cache
@@ -88,6 +89,7 @@ class PhotoAlbumViewController: UIViewController,
             newCollection( nil )
         }
     }
+    */
     
     // MARK: Set-up functions
     
@@ -139,6 +141,7 @@ class PhotoAlbumViewController: UIViewController,
         )
     }
     
+    /*
     func newCollection( sender: UIButton? )
     {
         // reset flag and local store
@@ -244,7 +247,14 @@ class PhotoAlbumViewController: UIViewController,
             }
         }
     }
+    */
     
+    func newCollection( sender: UIButton )
+    {
+        println( "newCollection..." )
+    }
+    
+    /*
     // remove the selected items from the collection view
     func removeItems( sender: UIButton )
     {
@@ -295,6 +305,12 @@ class PhotoAlbumViewController: UIViewController,
         
         // return the button to its default state
         toggleButton( NewCollectionButtonState.NewCollection )
+    }
+    */
+    
+    func removeItems( sender: UIButton )
+    {
+        println( "removeItems..." )
     }
     
     // toggle the text and functionality of the button
@@ -376,6 +392,8 @@ class PhotoAlbumViewController: UIViewController,
         numberOfItemsInSection section: Int
     ) -> Int
     {
+        return location.photoAlbum.count
+        /*
         if alreadyHaveImages
         {
             return self.location.photoAlbum.count
@@ -384,6 +402,7 @@ class PhotoAlbumViewController: UIViewController,
         {
             return self.currentAlbumInfo.count
         }
+        */
     }
     
     func collectionView(
@@ -397,9 +416,120 @@ class PhotoAlbumViewController: UIViewController,
             forIndexPath: indexPath
         ) as! PhotoAlbumCell
         
+        // set the placeholder image
+        cell.photoImageView.image = UIImage( named: "placeholder" )
+        
         // set cell selection state
         cell.alpha = ( cell.selected ) ? 0.35 : 1.0
         
+        // get the Photo for the cell
+        let cellPhoto = location.photoAlbum[ indexPath.item ]
+        
+        // check to see if the image has been written to disk for reuse
+        if let filePath = cellPhoto.filePath
+        {
+            println( "Getting a cached image..." )
+            dispatch_async( dispatch_get_main_queue() )
+            {
+                FlickrClient.sharedInstance().taskForImageData( filePath )
+                {
+                    imageData, taskError in
+                    
+                    // something happened
+                    if taskError != nil
+                    {
+                        // not going to pop up an alert here;
+                        // we'll just use the placeholder image until the cached image can be retrieved
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            cell.photoImageView.image = UIImage( named: "placeholder" )
+                        }
+                    }
+                    else if let cachedImageData = imageData
+                    {
+                        // use the cached image
+                        let cachedImage = UIImage( data: cachedImageData )
+                        
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            cell.activityIndicator.stopAnimating()
+                            cell.photoImageView.image = cachedImage
+                        }
+                    }
+                }
+            }
+        }
+        
+        // otherwise, download the image from Flickr
+        else
+        {
+            println( "Downloading an image..." )
+            cell.activityIndicator.hidden = false
+            cell.activityIndicator.startAnimating()
+            
+            let imageURL = cellPhoto.imageURL!
+            FlickrClient.sharedInstance().taskForImage( imageURL )
+            {
+                imageData, imageError in
+                
+                // an error happened
+                if imageError != nil
+                {
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        let alert = UIAlertController(
+                            title: "There was an error retrieving one of the photos.",
+                            message: "\( imageError!.localizedDescription )",
+                            preferredStyle: UIAlertControllerStyle.Alert
+                        )
+                        
+                        let alertAction = UIAlertAction(
+                            title: "😓   😓   😓",
+                            style: UIAlertActionStyle.Cancel
+                        )
+                        {
+                            action in
+                            
+                            return
+                        }
+                        
+                        alert.addAction( alertAction )
+                        
+                        self.presentViewController(
+                            alert,
+                            animated: true,
+                            completion: nil
+                        )
+                    }
+                }
+                else
+                {
+                    // write the image to the documents directory for caching
+                    cellPhoto.createImageFileURL()
+                    
+                    imageData!.writeToURL(
+                        cellPhoto.filePath!,
+                        options: nil,
+                        error: nil
+                    )
+                    
+                    // save the context
+                    CoreDataStackManager.sharedInstance().saveContext()
+                    
+                    // set the cell
+                    dispatch_async( dispatch_get_main_queue() )
+                    {
+                        cell.activityIndicator.hidden = true
+                        cell.activityIndicator.stopAnimating()
+                        cell.photoImageView.image = UIImage( data: imageData! )
+                    }
+                }
+            }
+        }
+        
+        return cell
+        
+        /*
         // the Pin came with a Photo from Core Data
         if alreadyHaveImages
         {
@@ -552,6 +682,7 @@ class PhotoAlbumViewController: UIViewController,
             
             return cell
         }
+        */
     }
     
     func collectionView(

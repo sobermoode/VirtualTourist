@@ -36,9 +36,10 @@ class TravelMapViewController: UIViewController,
     // otherwise, segue to the selected pin's photo album
     var inEditMode: Bool = false
     
-    // this is set from the PhotoAlbumViewController to let this controller
-    // know not to put the map back at the saved region
+    // this is set from the PhotoAlbumViewController to let this controller know not to put the map back at the saved region
+    // and to deselect any previously selected pin
     var returningFromPhotoAlbum: Bool = false
+    var selectedPin: MKAnnotation?
     
     lazy var sharedContext: NSManagedObjectContext =
     {
@@ -69,11 +70,12 @@ class TravelMapViewController: UIViewController,
         }
         else
         {
+            // deslect the pin; otherwise, you can't select it again consecutively without deslecting it by tapping an empty map region
+            mapView.deselectAnnotation( selectedPin!, animated: true )
+            
+            // reset the flag
             returningFromPhotoAlbum = false
         }
-        
-        // set the map's delegate
-        mapView.delegate = self
     }
     
     override func viewDidLoad()
@@ -119,6 +121,9 @@ class TravelMapViewController: UIViewController,
             action: "dropPin:"
         )
         self.view.addGestureRecognizer( pinDropper )
+        
+        // set the map's delegate
+        mapView.delegate = self
     }
     
     // MARK: Button functions
@@ -291,6 +296,8 @@ class TravelMapViewController: UIViewController,
             }
             else
             {
+                selectedPin = thePin
+                
                 // segue to the photo album
                 let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
                 photoAlbum.location = thePin

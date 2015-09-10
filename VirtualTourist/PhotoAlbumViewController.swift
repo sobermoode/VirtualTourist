@@ -338,7 +338,6 @@ class PhotoAlbumViewController: UIViewController,
         }
     }
     
-    /*
     // remove the selected items from the collection view
     func removeItems( sender: UIButton )
     {
@@ -358,7 +357,6 @@ class PhotoAlbumViewController: UIViewController,
         {
             selectedItems.append( indexPath.item )
         }
-        
         var sortedItems = sorted( selectedItems )
         {
             item1, item2 in
@@ -367,18 +365,11 @@ class PhotoAlbumViewController: UIViewController,
         }
         let reversedItems = sortedItems.reverse()
         
-        // delete the Photos from the album;
-        // if we're working with a new collection and haven't fetched them from Core Data, also delete them from the local URL info array,
-        // which is part of the data source
+        // delete the Photos from the Pin and Core Data
         for item in reversedItems
         {
             let photo = location.photoAlbum[ item ]
             sharedContext.deleteObject( photo )
-            
-            if !alreadyHaveImages
-            {
-                currentAlbumInfo.removeAtIndex( item )
-            }
         }
         
         // save the context
@@ -390,12 +381,13 @@ class PhotoAlbumViewController: UIViewController,
         // return the button to its default state
         toggleButton( NewCollectionButtonState.NewCollection )
     }
-    */
     
+    /*
     func removeItems( sender: UIButton )
     {
         println( "removeItems..." )
     }
+    */
     
     // toggle the text and functionality of the button
     func toggleButton( state: NewCollectionButtonState )

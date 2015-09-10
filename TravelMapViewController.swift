@@ -240,6 +240,10 @@ class TravelMapViewController: UIViewController,
                     )
                 }
             }
+            else
+            {
+                pin.didGetFlickrResults = true
+            }
         }
     }
     
@@ -277,17 +281,26 @@ class TravelMapViewController: UIViewController,
         // get the selected Pin
         let thePin = view.annotation as! Pin
         
+        // initiate segue to photo album
         if !inEditMode
         {
-            // not editing pins; segue to the photo album
-            let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
-            photoAlbum.location = thePin
-            
-            presentViewController(
-                photoAlbum,
-                animated: true,
-                completion: nil
-            )
+            // hang on; the request for Flickr results hasn't finished, yet
+            if !thePin.didGetFlickrResults
+            {
+                mapView.deselectAnnotation( thePin, animated: true )
+            }
+            else
+            {
+                // segue to the photo album
+                let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
+                photoAlbum.location = thePin
+                
+                presentViewController(
+                    photoAlbum,
+                    animated: true,
+                    completion: nil
+                )
+            }
         }
         else
         {

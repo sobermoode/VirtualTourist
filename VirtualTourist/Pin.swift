@@ -21,8 +21,8 @@ class Pin: NSManagedObject, MKAnnotation
     @NSManaged var pinLatitude: Double
     @NSManaged var pinLongitude: Double
     @NSManaged var photoAlbum: [ Photo! ]
-    
     @NSManaged var pinNumber: Int16
+    
     var coordinate: CLLocationCoordinate2D
     {
         return CLLocationCoordinate2D(
@@ -33,6 +33,9 @@ class Pin: NSManagedObject, MKAnnotation
     
     // for use with subsequent requests for new photo albums
     var nextFirstImage: Int?
+    
+    // we don't want to segue to the photo album too quickly
+    var didGetFlickrResults: Bool = false
     
     init(
         coordinate: CLLocationCoordinate2D,
@@ -91,6 +94,8 @@ class Pin: NSManagedObject, MKAnnotation
         for pin in pins
         {
             println( "This Pin has \( pin.photoAlbum.count ) Photos." )
+            // otherwise, we won't segue to the photo album
+            pin.didGetFlickrResults = true
         }
         
         Pin.currentPinNumber = Int16( pins.count )

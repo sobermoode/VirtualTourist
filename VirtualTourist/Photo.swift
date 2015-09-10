@@ -16,9 +16,13 @@ class Photo: NSManagedObject
     @NSManaged var pin: Pin
     @NSManaged var image: UIImage?
     
-    var fileName: String?
-    var filePath: NSURL?
-    var imageURL: NSURL?
+    /*
+    @NSManaging these properties is necessary to fix a bug:
+    When visiting a photo album for the first time, if you quit the app at any time without letting all the images download from Flickr, when you relaunch the app, and visit the photo album again, the app would crash trying to download the rest of the images from Flickr. The problem was that the app needed these properties of the Photo object to create a valid URL to the image on Flickr and also to create a URL to the directory on disk where the image was being cached. These properties weren’t being @NSManaged, and so, on relaunch, the app didn’t have values for them. They are @NSManaged now, and it all seems to work.
+    */
+    @NSManaged var fileName: String?
+    @NSManaged var filePath: NSURL?
+    @NSManaged var imageURL: NSURL?
     
     init(
         pin: Pin,

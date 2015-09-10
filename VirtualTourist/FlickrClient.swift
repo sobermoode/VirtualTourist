@@ -215,6 +215,8 @@ class FlickrClient: NSObject
                                     imageInfo: photoInfoDictionary,
                                     context: self.sharedContext
                                 )
+                                
+                                println( "Created a Photo with image URL: \( newPhoto.imageURL! )" )
                             }
                             
                             /*

@@ -432,66 +432,72 @@ class PhotoAlbumViewController: UIViewController,
             cell.activityIndicator.hidden = false
             cell.activityIndicator.startAnimating()
             
-            let imageURL = cellPhoto.imageURL!
-            FlickrClient.sharedInstance().taskForImage( imageURL )
+            if let imageURL = cellPhoto.imageURL
             {
-                imageData, imageError in
-                
-                // an error happened
-                if imageError != nil
+                FlickrClient.sharedInstance().taskForImage( imageURL )
                 {
-                    dispatch_async( dispatch_get_main_queue() )
+                    imageData, imageError in
+                    
+                    // an error happened
+                    if imageError != nil
                     {
-                        let alert = UIAlertController(
-                            title: "There was an error retrieving one of the photos.",
-                            message: "\( imageError!.localizedDescription )",
-                            preferredStyle: UIAlertControllerStyle.Alert
-                        )
-                        
-                        let alertAction = UIAlertAction(
-                            title: "😓   😓   😓",
-                            style: UIAlertActionStyle.Cancel
-                        )
+                        dispatch_async( dispatch_get_main_queue() )
                         {
-                            action in
+                            let alert = UIAlertController(
+                                title: "There was an error retrieving one of the photos.",
+                                message: "\( imageError!.localizedDescription )",
+                                preferredStyle: UIAlertControllerStyle.Alert
+                            )
                             
-                            return
+                            let alertAction = UIAlertAction(
+                                title: "😓   😓   😓",
+                                style: UIAlertActionStyle.Cancel
+                            )
+                            {
+                                action in
+                                
+                                return
+                            }
+                            
+                            alert.addAction( alertAction )
+                            
+                            self.presentViewController(
+                                alert,
+                                animated: true,
+                                completion: nil
+                            )
                         }
-                        
-                        alert.addAction( alertAction )
-                        
-                        self.presentViewController(
-                            alert,
-                            animated: true,
-                            completion: nil
-                        )
                     }
-                }
-                else
-                {
-                    // write the image to the documents directory for caching
-                    cellPhoto.createImageFileURL()
-                    
-                    imageData!.writeToURL(
-                        cellPhoto.filePath!,
-                        options: nil,
-                        error: nil
-                    )
-                    
-                    // save the image to fetch from Core Data
-                    cellPhoto.image = UIImage( data: imageData! )!
-                    
-                    // save the context
-                    CoreDataStackManager.sharedInstance().saveContext()
-                    
-                    // set the cell
-                    dispatch_async( dispatch_get_main_queue() )
+                    else
                     {
-                        cell.activityIndicator.hidden = true
-                        cell.activityIndicator.stopAnimating()
-                        cell.photoImageView.image = UIImage( data: imageData! )
+                        // write the image to the documents directory for caching
+                        cellPhoto.createImageFileURL()
+                        
+                        imageData!.writeToURL(
+                            cellPhoto.filePath!,
+                            options: nil,
+                            error: nil
+                        )
+                        
+                        // save the image to fetch from Core Data
+                        cellPhoto.image = UIImage( data: imageData! )!
+                        
+                        // save the context
+                        CoreDataStackManager.sharedInstance().saveContext()
+                        
+                        // set the cell
+                        dispatch_async( dispatch_get_main_queue() )
+                        {
+                            cell.activityIndicator.hidden = true
+                            cell.activityIndicator.stopAnimating()
+                            cell.photoImageView.image = UIImage( data: imageData! )
+                        }
                     }
                 }
+            }
+            else
+            {
+                println( "Couldn't get the imageURL..." )
             }
         }
         

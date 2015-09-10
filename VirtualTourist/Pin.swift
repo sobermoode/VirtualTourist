@@ -37,6 +37,9 @@ class Pin: NSManagedObject, MKAnnotation
     // we don't want to segue to the photo album too quickly
     var didGetFlickrResults: Bool = false
     
+    // user deleted all the images in the photo album, we need a new one
+    var needsNewPhotoAlbum: Bool = false
+    
     init(
         coordinate: CLLocationCoordinate2D,
         context: NSManagedObjectContext

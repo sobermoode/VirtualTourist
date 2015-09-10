@@ -75,7 +75,17 @@ class PhotoAlbumViewController: UIViewController,
     
     override func viewWillAppear( animated: Bool )
     {
-        if location.photoAlbum.isEmpty
+        // the user deleted all the photos from the collection but didn't request a new collection;
+        // upon returning to the photo album, get a new collection automatically
+        if location.needsNewPhotoAlbum
+        {
+            location.needsNewPhotoAlbum = false
+            
+            newCollection( nil )
+        }
+        
+        // there were zero photos taken at the location
+        else if location.photoAlbum.isEmpty
         {
             dispatch_async( dispatch_get_main_queue() )
             {
@@ -180,7 +190,7 @@ class PhotoAlbumViewController: UIViewController,
     }
     
     // request a new photo album from Flickr
-    func newCollection( sender: UIButton )
+    func newCollection( sender: UIButton? )
     {
         println( "newCollection..." )
         FlickrClient.sharedInstance().getResultsForLocation( location )
@@ -241,13 +251,20 @@ class PhotoAlbumViewController: UIViewController,
         {
             let photo = location.photoAlbum[ indexPath.item ]
             sharedContext.deleteObject( photo )
+            println( "The photo album has \( location.photoAlbum.count ) images." )
         }
         
         // save the context
         CoreDataStackManager.sharedInstance().saveContext()
+        println( "The photo album has \( location.photoAlbum.count ) images." )
         
         // delete the items from the collection view
         photoAlbumCollection.deleteItemsAtIndexPaths( selectedIndexPaths )
+        
+        if location.photoAlbum.isEmpty
+        {
+            location.needsNewPhotoAlbum = true
+        }
         
         // return the button to its default state
         toggleButton( NewCollectionButtonState.NewCollection )

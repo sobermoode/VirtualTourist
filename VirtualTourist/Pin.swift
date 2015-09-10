@@ -37,7 +37,8 @@ class Pin: NSManagedObject, MKAnnotation
     // we don't want to segue to the photo album too quickly
     var didGetFlickrResults: Bool = false
     
-    // user deleted all the images in the photo album, we need a new one
+    // user deleted all the images in the photo album, we need a new one; this flag initiates one automatically,
+    // otherwise, the user will segue to an empty album, and will have to manually request a new one
     var needsNewPhotoAlbum: Bool = false
     
     init(

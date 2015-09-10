@@ -179,114 +179,6 @@ class PhotoAlbumViewController: UIViewController,
         )
     }
     
-    /*
-    func newCollection( sender: UIButton? )
-    {
-        // reset flag and local store
-        alreadyHaveImages = false
-        currentAlbumInfo.removeAll( keepCapacity: false )
-        
-        // remove the current set of Photos from Core Data
-        for photo in location.photoAlbum
-        {
-            sharedContext.deleteObject( photo )
-        }
-        CoreDataStackManager.sharedInstance().saveContext()
-        
-        // initiate the Flickr request for the photo album
-        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location )
-        {
-            photoAlbumInfo, zeroResults, photoAlbumError in
-            
-            // there was an error somewhere along the way
-            if photoAlbumError != nil
-            {
-                dispatch_async( dispatch_get_main_queue() )
-                {
-                    self.photoAlbumCollection.hidden = true
-                    
-                    let alert = UIAlertController(
-                        title: "There was an error requesting the photos from Flickr",
-                        message: "\( photoAlbumError!.localizedDescription )",
-                        preferredStyle: UIAlertControllerStyle.Alert
-                    )
-                    
-                    let alertAction = UIAlertAction(
-                        title: "Keep Traveling",
-                        style: UIAlertActionStyle.Cancel
-                    )
-                    {
-                        action in
-                        
-                        let travelMap = self.presentingViewController as! TravelMapViewController
-                        travelMap.returningFromPhotoAlbum = true
-                        
-                        self.dismissViewControllerAnimated( true, completion: nil )
-                    }
-                    
-                    alert.addAction( alertAction )
-                    
-                    self.presentViewController(
-                        alert,
-                        animated: true,
-                        completion: nil
-                    )
-                }
-            }
-            else
-            {
-                // nobody took any pictures there
-                if zeroResults
-                {
-                    dispatch_async( dispatch_get_main_queue() )
-                    {
-                        self.photoAlbumCollection.hidden = true
-                        
-                        let alert = UIAlertController(
-                            title: "😓   😓   😓",
-                            message: "No one took any pictures at that location.",
-                            preferredStyle: UIAlertControllerStyle.Alert
-                        )
-                        
-                        let alertAction = UIAlertAction(
-                            title: "Keep Traveling",
-                            style: UIAlertActionStyle.Cancel
-                        )
-                        {
-                            action in
-                            
-                            let travelMap = self.presentingViewController as! TravelMapViewController
-                            travelMap.returningFromPhotoAlbum = true
-                            
-                            self.dismissViewControllerAnimated( true, completion: nil )
-                        }
-                        
-                        alert.addAction( alertAction )
-                        
-                        self.presentViewController(
-                            alert,
-                            animated: true,
-                            completion: nil
-                        )
-                    }
-                }
-                else
-                {
-                    // we've got a photo album!
-                    // save the info to construct URLs to images
-                    self.currentAlbumInfo = photoAlbumInfo!
-                    
-                    // reload the collection view
-                    dispatch_async( dispatch_get_main_queue() )
-                    {
-                        self.photoAlbumCollection.reloadData()
-                    }
-                }
-            }
-        }
-    }
-    */
-    
     // request a new photo album from Flickr
     func newCollection( sender: UIButton )
     {
@@ -344,31 +236,10 @@ class PhotoAlbumViewController: UIViewController,
         // get the selected index paths
         let selectedIndexPaths = photoAlbumCollection.indexPathsForSelectedItems() as! [ NSIndexPath ]
         
-        // create an array of indexes from the index paths;
-        // sort the indexes, then reverse them
-        // (i was experiencing some strangeitude, where, beyond a certain point in the collection view,
-        // the selected items weren't being returned in a logical order. upon removing them, an array
-        // index out-of-bounds exception would get thrown, when the collection view tried to access
-        // an item at an index that now was outside the max for the number of items it still contained.
-        // (it's probably difficult to envision what was happening. trust me, this fixed it, even if
-        // it looks horribly inefficent, and just strange, in-and-of-itself)).
-        var selectedItems = [ Int ]()
+        // delete the items from the photo album and Core Data
         for indexPath in selectedIndexPaths
         {
-            selectedItems.append( indexPath.item )
-        }
-        var sortedItems = sorted( selectedItems )
-        {
-            item1, item2 in
-            
-            return item1 < item2
-        }
-        let reversedItems = sortedItems.reverse()
-        
-        // delete the Photos from the Pin and Core Data
-        for item in reversedItems
-        {
-            let photo = location.photoAlbum[ item ]
+            let photo = location.photoAlbum[ indexPath.item ]
             sharedContext.deleteObject( photo )
         }
         
@@ -381,13 +252,6 @@ class PhotoAlbumViewController: UIViewController,
         // return the button to its default state
         toggleButton( NewCollectionButtonState.NewCollection )
     }
-    
-    /*
-    func removeItems( sender: UIButton )
-    {
-        println( "removeItems..." )
-    }
-    */
     
     // toggle the text and functionality of the button
     func toggleButton( state: NewCollectionButtonState )

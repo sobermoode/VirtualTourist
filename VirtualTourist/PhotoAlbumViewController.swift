@@ -287,9 +287,55 @@ class PhotoAlbumViewController: UIViewController,
     }
     */
     
+    // request a new photo album from Flickr
     func newCollection( sender: UIButton )
     {
         println( "newCollection..." )
+        FlickrClient.sharedInstance().getResultsForLocation( location )
+        {
+            resultsError in
+            
+            // there was an error with the request
+            if resultsError != nil
+            {
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    let alert = UIAlertController(
+                        title: "There was an error requesting photo information from Flickr",
+                        message: "\( resultsError!.localizedDescription )",
+                        preferredStyle: UIAlertControllerStyle.Alert
+                    )
+                    
+                    let alertAction = UIAlertAction(
+                        title: "Try again",
+                        style: UIAlertActionStyle.Cancel
+                    )
+                    {
+                        action in
+                        
+                        // TODO: implement this error
+                        return
+                    }
+                    
+                    alert.addAction( alertAction )
+                    
+                    self.presentViewController(
+                        alert,
+                        animated: true,
+                        completion: nil
+                    )
+                }
+            }
+                
+            // the request was successful, so reload the collection view
+            else
+            {
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    self.photoAlbumCollection.reloadData()
+                }
+            }
+        }
     }
     
     /*

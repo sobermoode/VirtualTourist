@@ -76,8 +76,16 @@ class FlickrClient: NSObject
         // set the current Pin
         currentPin = pin
         
-        // blank the current set of URL info
-        // currentAlbumPhotoInfo.removeAll( keepCapacity: false )
+        // delete all current Photo objects and save the context
+        if !pin.photoAlbum.isEmpty
+        {
+            for photo in pin.photoAlbum
+            {
+                sharedContext.deleteObject( photo )
+            }
+            
+            CoreDataStackManager.sharedInstance().saveContext()
+        }
         
         // make the initial request
         requestResultsForLocation( pin.coordinate )

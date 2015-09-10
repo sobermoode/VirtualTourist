@@ -14,7 +14,7 @@ import CoreData
 class Photo: NSManagedObject
 {
     @NSManaged var pin: Pin
-    // @NSManaged var image: UIImage
+    @NSManaged var image: UIImage?
     
     var fileName: String?
     var filePath: NSURL?

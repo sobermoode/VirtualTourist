@@ -463,8 +463,16 @@ class PhotoAlbumViewController: UIViewController,
         // get the Photo for the cell
         let cellPhoto = location.photoAlbum[ indexPath.item ]
         
+        // get the image saved to Core Data
+        if let cellImage = cellPhoto.image
+        {
+            println( "Using Core Data image..." )
+            cell.activityIndicator.stopAnimating()
+            cell.photoImageView.image = cellImage
+        }
+        
         // check to see if the image has been written to disk for reuse
-        if let filePath = cellPhoto.filePath
+        else if let filePath = cellPhoto.filePath
         {
             println( "Getting a cached image..." )
             dispatch_async( dispatch_get_main_queue() )
@@ -550,6 +558,9 @@ class PhotoAlbumViewController: UIViewController,
                         options: nil,
                         error: nil
                     )
+                    
+                    // save the image to fetch from Core Data
+                    cellPhoto.image = UIImage( data: imageData! )!
                     
                     // save the context
                     CoreDataStackManager.sharedInstance().saveContext()

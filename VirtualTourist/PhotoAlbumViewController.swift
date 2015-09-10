@@ -73,6 +73,44 @@ class PhotoAlbumViewController: UIViewController,
         noImagesLabel.hidden  = true
     }
     
+    override func viewWillAppear( animated: Bool )
+    {
+        if location.photoAlbum.isEmpty
+        {
+            dispatch_async( dispatch_get_main_queue() )
+            {
+                self.photoAlbumCollection.hidden = true
+                
+                let alert = UIAlertController(
+                    title: "😓   😓   😓",
+                    message: "No one took any pictures at that location.",
+                    preferredStyle: UIAlertControllerStyle.Alert
+                )
+                
+                let alertAction = UIAlertAction(
+                    title: "Keep Traveling",
+                    style: UIAlertActionStyle.Cancel
+                )
+                {
+                    action in
+                    
+                    let travelMap = self.presentingViewController as! TravelMapViewController
+                    travelMap.returningFromPhotoAlbum = true
+                    
+                    self.dismissViewControllerAnimated( true, completion: nil )
+                }
+                
+                alert.addAction( alertAction )
+                
+                self.presentViewController(
+                    alert,
+                    animated: true,
+                    completion: nil
+                )
+            }
+        }
+    }
+    
     /*
     override func viewWillAppear( animated: Bool )
     {

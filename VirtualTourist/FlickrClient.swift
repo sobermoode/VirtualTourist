@@ -133,7 +133,6 @@ class FlickrClient: NSObject
                         let photos = requestResults[ "photos" ] as! [ String : AnyObject ]
                         let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
                         
-                        println( "There were \( photoArray.count ) results." )
                         self.currentResults = photoArray
                         
                         // if there are results to work with, populate the Pin's photo album with Photo objects that contain the relevant URL info
@@ -168,10 +167,8 @@ class FlickrClient: NSObject
                             }
                             else
                             {
-                                println( "There were 30+ results." )
                                 if let nextStart = self.currentPin.nextFirstImage
                                 {
-                                    println( "There were more images..." )
                                     if ( nextStart + self.maxImagesToShow ) > photoArray.count
                                     {
                                         startPhoto = 0
@@ -187,14 +184,11 @@ class FlickrClient: NSObject
                                 }
                                 else
                                 {
-                                    println( "Starting over..." )
                                     startPhoto = 0
                                     endPhoto = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count - 1
                                     self.currentPin.nextFirstImage = endPhoto + 1
                                 }
                             }
-                            
-                            println( "Using photos \( startPhoto )-\( endPhoto )" )
                             
                             // strange casting here;
                             // since taking a sub-section of an array returns a Slice (a pointer into an array, not a new array),

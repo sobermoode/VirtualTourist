@@ -12,7 +12,8 @@ import CoreData
 
 @objc( Pin )
 
-class Pin: NSManagedObject, MKAnnotation
+class Pin: NSManagedObject,
+    MKAnnotation
 {
     // class properties
     static var currentPinNumber: Int16 = 0

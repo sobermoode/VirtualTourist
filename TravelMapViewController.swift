@@ -140,9 +140,9 @@ class TravelMapViewController: UIViewController,
                     )
                 }
             }
-            else
+            else if let pins = fetchedPins
             {
-                self.mapView.addAnnotations( fetchedPins! )
+                self.mapView.addAnnotations( pins )
             }
         }
         
@@ -326,6 +326,14 @@ class TravelMapViewController: UIViewController,
         {
             // hang on; the request for Flickr results hasn't finished, yet;
             // otherwise, we'll segue to a photo album without any items in the collection view
+            /*
+                NOTE:
+                i realize this isn't an ideal solution. on wifi, there's almost no delay. on slow connections,
+                you might end up waiting a long time before you can segue to the photo album, with no indication
+                of what is going on. i spent some time trying to implement the NSURLSessionTaskDelegate methods
+                to find a more elegant solution, but no matter what I tried, I could not get URLSession:task:didCompleteWithError:
+                to fire, as an indication of when the task finished and the results had been returned. so i went with this.
+            */
             if !thePin.didGetFlickrResults
             {
                 mapView.deselectAnnotation( thePin, animated: true )

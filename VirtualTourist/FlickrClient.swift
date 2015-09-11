@@ -214,16 +214,6 @@ class FlickrClient: NSObject
                                     context: self.sharedContext
                                 )
                             }
-                            
-                            /*
-                            // create a URL from the info in each dictionary
-                            // and append it to the current set
-                            for photoInfoDictionary in albumInfos
-                            {
-                                let imageURL = self.urlForImageInfo( photoInfoDictionary )
-                                self.currentAlbumPhotoInfo.append( imageURL )
-                            }
-                            */
                         }
                         
                         // whew, success!!!
@@ -247,21 +237,6 @@ class FlickrClient: NSObject
             requestTask.resume()
         }
     }
-    
-    /*
-    // creates an NSURL to an actual image from an info dictionary returned from Flickr
-    func urlForImageInfo( imageInfo: [ String : AnyObject ] ) -> NSURL!
-    {
-        let farmID = imageInfo[ "farm" ] as! Int
-        let serverID = imageInfo[ "server" ] as! String
-        let photoID = imageInfo[ "id" ] as! String
-        let secret = imageInfo[ "secret" ] as! String
-        
-        let imageURLString = "https://farm\( farmID ).staticflickr.com/\( serverID )/\( photoID )_\( secret ).jpg"
-        
-        return NSURL( string: imageURLString )!
-    }
-    */
     
     // task for downloading an image from Flickr
     func taskForImage(
@@ -290,7 +265,8 @@ class FlickrClient: NSObject
         }
         imageTask.resume()
     }
-    
+
+    // task for returning image data saved to the device
     func taskForImageData(
         filePath: NSURL,
         completionHandler: ( imageData: NSData?, taskError: NSError? ) -> Void

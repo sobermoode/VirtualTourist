@@ -24,17 +24,12 @@ class FlickrClient: NSObject
     // the location to request images for
     var currentPin: Pin!
     
-    // holder collection
-    var currentAlbumPhotoInfo = [ NSURL ]()
-    
-    // might still need this to cache photo albums returned in the current session,
-    // to prevent another query to Flickr for the same set of pictures,
-    // because they won't be fetched from Core Data
-    var albumForDestinationID = [ Int16 : AnyObject ]()
-    
     // max size of the photo album
     // (use to configure the collection view in the PhotoAlbumViewController)
     var maxImagesToShow: Int = 30
+    
+    // save the (up to 250) results from the Flickr request for subsequent new collection requests
+    var currentResults = [[ String : AnyObject ]]()
     
     // NOTE:
     // inspired by the Movie class from the FavoriteActors project
@@ -138,10 +133,10 @@ class FlickrClient: NSObject
                         let photos = requestResults[ "photos" ] as! [ String : AnyObject ]
                         let photoArray = photos[ "photo" ] as! [[ String : AnyObject ]]
                         
-                        println( "Got \( photoArray.count ) results." )
+                        println( "There were \( photoArray.count ) results." )
+                        self.currentResults = photoArray
                         
-                        // if there are results to work with, create a set to return to the PhotoAlbumViewController
-                        // if there are no results, the zeroResults flag will get sent, instead
+                        // if there are results to work with, populate the Pin's photo album with Photo objects that contain the relevant URL info
                         if photoArray.count != 0
                         {
                             // take a sub-section of the result set, as configured above;
@@ -159,7 +154,6 @@ class FlickrClient: NSObject
                             var dontSetNextFirstImage: Bool = false
                             if photoArray.count == 1
                             {
-                                println( "There was 1 result." )
                                 startPhoto = 0
                                 endPhoto = 0
                                 
@@ -167,7 +161,6 @@ class FlickrClient: NSObject
                             }
                             else if photoArray.count <= self.maxImagesToShow
                             {
-                                println( "There were 30 or less results." )
                                 startPhoto = 0
                                 endPhoto = photoArray.count - 1
                                 
@@ -183,11 +176,13 @@ class FlickrClient: NSObject
                                     {
                                         startPhoto = 0
                                         endPhoto = self.maxImagesToShow - 1
+                                        self.currentPin.nextFirstImage = nil
                                     }
                                     else
                                     {
                                         startPhoto = nextStart
                                         endPhoto = ( photoArray.count > ( nextStart + self.maxImagesToShow ) ) ? ( nextStart + self.maxImagesToShow - 1 ) : self.maxImagesToShow - 1
+                                        self.currentPin.nextFirstImage = endPhoto + 1
                                     }
                                 }
                                 else
@@ -195,14 +190,17 @@ class FlickrClient: NSObject
                                     println( "Starting over..." )
                                     startPhoto = 0
                                     endPhoto = ( photoArray.count > self.maxImagesToShow ) ? self.maxImagesToShow - 1 : photoArray.count - 1
+                                    self.currentPin.nextFirstImage = endPhoto + 1
                                 }
                             }
+                            
+                            println( "Using photos \( startPhoto )-\( endPhoto )" )
                             
                             // strange casting here;
                             // since taking a sub-section of an array returns a Slice (a pointer into an array, not a new array),
                             // and which is itself a type, i had to cast the Slice into the type i actually want to use
                             // check out https://stackoverflow.com/questions/24073269/what-is-a-slice-in-swift for more
-                            let albumInfos = [[ String : AnyObject ]]( photoArray[ startPhoto...endPhoto ] )
+                            let albumInfos = [[ String : AnyObject ]]( self.currentResults[ startPhoto...endPhoto ] )
                             
                             // update the album counter
                             self.currentPin.nextFirstImage = ( dontSetNextFirstImage ) ? nil : endPhoto + 1
@@ -215,8 +213,6 @@ class FlickrClient: NSObject
                                     imageInfo: photoInfoDictionary,
                                     context: self.sharedContext
                                 )
-                                
-                                println( "Created a Photo with image URL: \( newPhoto.imageURL! )" )
                             }
                             
                             /*

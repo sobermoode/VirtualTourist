@@ -13,6 +13,7 @@ import CoreData
 
 class Photo: NSManagedObject
 {
+    // managed properties
     @NSManaged var pin: Pin
     @NSManaged var image: UIImage?
     
@@ -43,14 +44,12 @@ class Photo: NSManagedObject
         
         // set the Pin relationship
         self.pin = pin
-        // self.image = UIImage( data: imageData )!
         
         // create a unique file name and path on the device for the Photo
         let imageNumber = pin.photoAlbum.count + 1
         self.fileName = "pin\( pin.pinNumber )-image\( imageNumber )"
-        // self.filePath = createImageFileURL()
         
-        // create a URL to the image on Flickr for a subsequent request
+        // create a URL to the image on Flickr for the photo album request
         self.imageURL = urlForImageInfo( imageInfo )
     }
     
@@ -65,7 +64,7 @@ class Photo: NSManagedObject
         )
     }
     
-    // creates a URL to the file saved on the device
+    // creates an NSURL to the file saved on the device
     func createImageFileURL()
     {
         let directoryPath = NSSearchPathForDirectoriesInDomains(

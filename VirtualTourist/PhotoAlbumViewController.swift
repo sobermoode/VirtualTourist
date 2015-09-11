@@ -249,7 +249,7 @@ class PhotoAlbumViewController: UIViewController,
         // delete the items from the photo album, the Documents directory, and Core Data
         for indexPath in selectedIndexPaths
         {
-            let photo = location.photoAlbum[ indexPath.item ]!
+            let photo = location.photoAlbum[ indexPath.item ]
             let photoFilePath = photo.filePath!
             
             NSFileManager.defaultManager().removeItemAtURL( photoFilePath, error: nil )

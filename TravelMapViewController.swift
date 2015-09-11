@@ -106,10 +106,44 @@ class TravelMapViewController: UIViewController,
             savedRegion = newMapRegion
         }
         
-        // TODO: 2-2 add all the pins, from step 2-1
-        if let allPins = Pin.fetchAllPins()
+        // fetch the Pins from Core Data and add them to the map
+        Pin.fetchAllPins()
         {
-            mapView.addAnnotations( allPins )
+            fetchError, fetchedPins in
+            
+            if fetchError != nil
+            {
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    let alert = UIAlertController(
+                        title: "There was an error fetching the pins from Core Data:",
+                        message: "\( fetchError )",
+                        preferredStyle: UIAlertControllerStyle.Alert
+                    )
+                    
+                    let alertAction = UIAlertAction(
+                        title: "Oops",
+                        style: UIAlertActionStyle.Cancel
+                    )
+                    {
+                        action in
+                        
+                        return
+                    }
+                    
+                    alert.addAction( alertAction )
+                    
+                    self.presentViewController(
+                        alert,
+                        animated: true,
+                        completion: nil
+                    )
+                }
+            }
+            else
+            {
+                self.mapView.addAnnotations( fetchedPins! )
+            }
         }
         
         // add the initial action to the editPinsButton
@@ -247,6 +281,7 @@ class TravelMapViewController: UIViewController,
             }
             else
             {
+                // the request for Flickr info has finished
                 pin.didGetFlickrResults = true
             }
         }
@@ -289,7 +324,8 @@ class TravelMapViewController: UIViewController,
         // initiate segue to photo album
         if !inEditMode
         {
-            // hang on; the request for Flickr results hasn't finished, yet
+            // hang on; the request for Flickr results hasn't finished, yet;
+            // otherwise, we'll segue to a photo album without any items in the collection view
             if !thePin.didGetFlickrResults
             {
                 mapView.deselectAnnotation( thePin, animated: true )

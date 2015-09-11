@@ -15,7 +15,6 @@ class PhotoAlbumViewController: UIViewController,
 {
     // outlets
     @IBOutlet weak var navBar: UINavigationBar!
-    @IBOutlet weak var noImagesLabel: UILabel!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var photoAlbumCollection: UICollectionView!
@@ -61,10 +60,6 @@ class PhotoAlbumViewController: UIViewController,
         photoAlbumCollection.allowsMultipleSelection = true
         photoAlbumCollection.dataSource = self
         photoAlbumCollection.delegate = self
-        
-        // TODO: remove the label
-        // hide the label, unless it is needed
-        noImagesLabel.hidden  = true
     }
     
     override func viewWillAppear( animated: Bool )

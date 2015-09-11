@@ -36,9 +36,10 @@ class TravelMapViewController: UIViewController,
     // otherwise, segue to the selected pin's photo album
     var inEditMode: Bool = false
     
-    // this is set from the PhotoAlbumViewController to let this controller
-    // know not to put the map back at the saved region
+    // this is set from the PhotoAlbumViewController to let this controller know not to put the map back at the saved region
+    // and to deselect any previously selected pin
     var returningFromPhotoAlbum: Bool = false
+    var selectedPin: MKAnnotation?
     
     lazy var sharedContext: NSManagedObjectContext =
     {
@@ -69,11 +70,12 @@ class TravelMapViewController: UIViewController,
         }
         else
         {
+            // deslect the pin; otherwise, you can't select it again consecutively without deslecting it by tapping an empty map region
+            mapView.deselectAnnotation( selectedPin!, animated: true )
+            
+            // reset the flag
             returningFromPhotoAlbum = false
         }
-        
-        // set the map's delegate
-        mapView.delegate = self
     }
     
     override func viewDidLoad()
@@ -104,10 +106,44 @@ class TravelMapViewController: UIViewController,
             savedRegion = newMapRegion
         }
         
-        // TODO: 2-2 add all the pins, from step 2-1
-        if let allPins = Pin.fetchAllPins()
+        // fetch the Pins from Core Data and add them to the map
+        Pin.fetchAllPins()
         {
-            mapView.addAnnotations( allPins )
+            fetchError, fetchedPins in
+            
+            if fetchError != nil
+            {
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    let alert = UIAlertController(
+                        title: "There was an error fetching the pins from Core Data:",
+                        message: "\( fetchError )",
+                        preferredStyle: UIAlertControllerStyle.Alert
+                    )
+                    
+                    let alertAction = UIAlertAction(
+                        title: "Oops",
+                        style: UIAlertActionStyle.Cancel
+                    )
+                    {
+                        action in
+                        
+                        return
+                    }
+                    
+                    alert.addAction( alertAction )
+                    
+                    self.presentViewController(
+                        alert,
+                        animated: true,
+                        completion: nil
+                    )
+                }
+            }
+            else if let pins = fetchedPins
+            {
+                self.mapView.addAnnotations( pins )
+            }
         }
         
         // add the initial action to the editPinsButton
@@ -119,6 +155,9 @@ class TravelMapViewController: UIViewController,
             action: "dropPin:"
         )
         self.view.addGestureRecognizer( pinDropper )
+        
+        // set the map's delegate
+        mapView.delegate = self
     }
     
     // MARK: Button functions
@@ -179,6 +218,9 @@ class TravelMapViewController: UIViewController,
                 // create a Pin
                 let newPin = Pin( coordinate: mapCoordinate, context: sharedContext )
                 
+                // make the Flickr request for the photo results
+                getFlickrResults( newPin )
+                
                 // add the pin to the map
                 mapView.addAnnotation( newPin )
                 
@@ -197,6 +239,51 @@ class TravelMapViewController: UIViewController,
             
             default:
                 return
+        }
+    }
+    
+    func getFlickrResults( pin: Pin )
+    {
+        FlickrClient.sharedInstance().getResultsForLocation( pin )
+        {
+            resultsError in
+            
+            // there was an error with the request
+            if resultsError != nil
+            {
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    let alert = UIAlertController(
+                        title: "There was an error requesting photo information from Flickr",
+                        message: "\( resultsError!.localizedDescription )",
+                        preferredStyle: UIAlertControllerStyle.Alert
+                    )
+                    
+                    let alertAction = UIAlertAction(
+                        title: "Drop another pin",
+                        style: UIAlertActionStyle.Cancel
+                        )
+                    {
+                        action in
+                        
+                        // remove the Pin; the photo album view controller won't have anything to work with
+                        self.mapView.removeAnnotation( pin )
+                    }
+                    
+                    alert.addAction( alertAction )
+                    
+                    self.presentViewController(
+                        alert,
+                        animated: true,
+                        completion: nil
+                    )
+                }
+            }
+            else
+            {
+                // the request for Flickr info has finished
+                pin.didGetFlickrResults = true
+            }
         }
     }
     
@@ -234,17 +321,37 @@ class TravelMapViewController: UIViewController,
         // get the selected Pin
         let thePin = view.annotation as! Pin
         
+        // initiate segue to photo album
         if !inEditMode
         {
-            // not editing pins; segue to the photo album
-            let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
-            photoAlbum.location = thePin
-            
-            presentViewController(
-                photoAlbum,
-                animated: true,
-                completion: nil
-            )
+            // hang on; the request for Flickr results hasn't finished, yet;
+            // otherwise, we'll segue to a photo album without any items in the collection view
+            /*
+                NOTE:
+                i realize this isn't an ideal solution. on wifi, there's almost no delay. on slow connections,
+                you might end up waiting a long time before you can segue to the photo album, with no indication
+                of what is going on. i spent some time trying to implement the NSURLSessionTaskDelegate methods
+                to find a more elegant solution, but no matter what I tried, I could not get URLSession:task:didCompleteWithError:
+                to fire, as an indication of when the task finished and the results had been returned. so i went with this.
+            */
+            if !thePin.didGetFlickrResults
+            {
+                mapView.deselectAnnotation( thePin, animated: true )
+            }
+            else
+            {
+                selectedPin = thePin
+                
+                // segue to the photo album
+                let photoAlbum = storyboard?.instantiateViewControllerWithIdentifier( "PhotoAlbum" ) as! PhotoAlbumViewController
+                photoAlbum.location = thePin
+                
+                presentViewController(
+                    photoAlbum,
+                    animated: true,
+                    completion: nil
+                )
+            }
         }
         else
         {

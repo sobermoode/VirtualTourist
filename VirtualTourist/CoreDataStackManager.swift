@@ -6,6 +6,9 @@
 //  Copyright (c) 2015 Udacity. All rights reserved.
 //
 
+// NOTE:
+// this file was taken whole from the lessons leading up to project 4
+
 import Foundation
 import CoreData
 

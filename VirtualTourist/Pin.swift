@@ -12,17 +12,19 @@ import CoreData
 
 @objc( Pin )
 
-class Pin: NSManagedObject, MKAnnotation
+class Pin: NSManagedObject,
+    MKAnnotation
 {
     // class properties
     static var currentPinNumber: Int16 = 0
     
-    // instance properties
+    // managed properties
     @NSManaged var pinLatitude: Double
     @NSManaged var pinLongitude: Double
-    @NSManaged var photoAlbum: [ Photo! ]
-    
     @NSManaged var pinNumber: Int16
+    @NSManaged var photoAlbum: [ Photo ]
+    
+    // instance properties
     var coordinate: CLLocationCoordinate2D
     {
         return CLLocationCoordinate2D(
@@ -34,12 +36,20 @@ class Pin: NSManagedObject, MKAnnotation
     // for use with subsequent requests for new photo albums
     var nextFirstImage: Int?
     
+    // we don't want to segue to the photo album too quickly;
+    // see TravelMapViewController.swift
+    var didGetFlickrResults: Bool = false
+    
+    // user deleted all the images in the photo album, so we need a new one; this flag initiates one automatically,
+    // otherwise, the user will segue to an empty album, and will have to manually request a new one
+    var needsNewPhotoAlbum: Bool = false
+    
     init(
         coordinate: CLLocationCoordinate2D,
         context: NSManagedObjectContext
     )
     {
-        println( "Creating a new Pin..." )
+        // give the Pin to the context
         let pinEntity = NSEntityDescription.entityForName(
             "Pin",
             inManagedObjectContext: context
@@ -69,32 +79,43 @@ class Pin: NSManagedObject, MKAnnotation
         )
     }
     
-    class func fetchAllPins() -> [ Pin ]?
+    class func fetchAllPins( completionHandler: ( fetchError: NSErrorPointer, fetchedPins: [ Pin ]? ) -> Void )
     {
-        println( "fetching all pins..." )
+        // make the fetch request
         let fetchError: NSErrorPointer = nil
-        
         let pinsFetchRequest = NSFetchRequest( entityName: "Pin" )
-        
         let pins = CoreDataStackManager.sharedInstance().managedObjectContext!.executeFetchRequest(
             pinsFetchRequest,
             error: fetchError
         )! as! [ Pin ]
-        println( "pins.count: \( pins.count )" )
         
+        // something went wrong with the fetch request
         if fetchError != nil
         {
-            println( "There was an error fetching the pins from Core Data: \( fetchError )." )
+            completionHandler(
+                fetchError: fetchError,
+                fetchedPins: nil
+            )
         }
-        
-        for pin in pins
+            
+        // the Pins have been recovered from Core Data;
+        // they need to be configured before being returned to the TravelMapViewController
+        else
         {
-            println( "This Pin has \( pin.photoAlbum.count ) Photos." )
+            for pin in pins
+            {
+                // need to set the flag, otherwise, we won't segue to the photo album
+                pin.didGetFlickrResults = true
+            }
+            
+            // set the total pin number
+            Pin.currentPinNumber = Int16( pins.count )
+            
+            // the fetch request might have been successful but returned zero Pins?
+            return ( pins.count > 0 ) ?
+                completionHandler( fetchError: nil, fetchedPins: pins ) :
+                completionHandler( fetchError: nil, fetchedPins: nil )
         }
-        
-        Pin.currentPinNumber = Int16( pins.count )
-        
-        return ( pins.count > 0 ) ? pins : nil
     }
     
     class func removePin()

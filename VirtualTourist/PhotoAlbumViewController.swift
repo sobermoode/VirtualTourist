@@ -23,12 +23,6 @@ class PhotoAlbumViewController: UIViewController,
     // the location selected from the travel map
     var location: Pin!
     
-    // results returned from Flickr
-    var currentAlbumInfo = [ NSURL ]()
-    
-    // a flag for determining whether or not we loaded a photo album from Core Data
-    var alreadyHaveImages: Bool = false
-    
     lazy var sharedContext: NSManagedObjectContext =
     {
         return CoreDataStackManager.sharedInstance().managedObjectContext!
@@ -75,17 +69,49 @@ class PhotoAlbumViewController: UIViewController,
     
     override func viewWillAppear( animated: Bool )
     {
-        // we fetched a photo album from Core Data, or there's a local cache
-        if !location.photoAlbum.isEmpty
+        // the user deleted all the photos from the collection but didn't request a new collection;
+        // upon returning to the photo album, get a new collection automatically
+        if location.needsNewPhotoAlbum
         {
-            alreadyHaveImages = true
-            self.photoAlbumCollection.reloadData()
-        }
+            location.needsNewPhotoAlbum = false
             
-        // otherwise, initiate the request for a photo album
-        else
-        {
             newCollection( nil )
+        }
+        
+        // there were zero photos taken at the location
+        else if location.photoAlbum.isEmpty
+        {
+            dispatch_async( dispatch_get_main_queue() )
+            {
+                self.photoAlbumCollection.hidden = true
+                
+                let alert = UIAlertController(
+                    title: "😓   😓   😓",
+                    message: "No one took any pictures at that location.",
+                    preferredStyle: UIAlertControllerStyle.Alert
+                )
+                
+                let alertAction = UIAlertAction(
+                    title: "Keep Traveling",
+                    style: UIAlertActionStyle.Cancel
+                )
+                {
+                    action in
+                    
+                    let travelMap = self.presentingViewController as! TravelMapViewController
+                    travelMap.returningFromPhotoAlbum = true
+                    
+                    self.dismissViewControllerAnimated( true, completion: nil )
+                }
+                
+                alert.addAction( alertAction )
+                
+                self.presentViewController(
+                    alert,
+                    animated: true,
+                    completion: nil
+                )
+            }
         }
     }
     
@@ -139,39 +165,31 @@ class PhotoAlbumViewController: UIViewController,
         )
     }
     
+    // request a new photo album from Flickr
     func newCollection( sender: UIButton? )
     {
-        // reset flag and local store
-        alreadyHaveImages = false
-        currentAlbumInfo.removeAll( keepCapacity: false )
+        // reset the flag
+        location.needsNewPhotoAlbum = false
         
-        // remove the current set of Photos from Core Data
-        for photo in location.photoAlbum
+        FlickrClient.sharedInstance().getResultsForLocation( location )
         {
-            sharedContext.deleteObject( photo )
-        }
-        CoreDataStackManager.sharedInstance().saveContext()
-        
-        // initiate the Flickr request for the photo album
-        FlickrClient.sharedInstance().getNewPhotoAlbumForLocation( location )
-        {
-            photoAlbumInfo, zeroResults, photoAlbumError in
+            resultsError in
             
-            // there was an error somewhere along the way
-            if photoAlbumError != nil
+            // there was an error with the request;
+            // we'll return to the TravelMapViewController if there's an error requesting a new collection.
+            // the user can come back to the photo album and a new request should be made automatically
+            if resultsError != nil
             {
                 dispatch_async( dispatch_get_main_queue() )
                 {
-                    self.photoAlbumCollection.hidden = true
-                    
                     let alert = UIAlertController(
-                        title: "There was an error requesting the photos from Flickr",
-                        message: "\( photoAlbumError!.localizedDescription )",
+                        title: "There was an error requesting photo information from Flickr",
+                        message: "\( resultsError!.localizedDescription )",
                         preferredStyle: UIAlertControllerStyle.Alert
                     )
                     
                     let alertAction = UIAlertAction(
-                        title: "Keep Traveling",
+                        title: "Try again",
                         style: UIAlertActionStyle.Cancel
                     )
                     {
@@ -192,54 +210,13 @@ class PhotoAlbumViewController: UIViewController,
                     )
                 }
             }
+                
+            // the request was successful, so reload the collection view
             else
             {
-                // nobody took any pictures there
-                if zeroResults
+                dispatch_async( dispatch_get_main_queue() )
                 {
-                    dispatch_async( dispatch_get_main_queue() )
-                    {
-                        self.photoAlbumCollection.hidden = true
-                        
-                        let alert = UIAlertController(
-                            title: "😓   😓   😓",
-                            message: "No one took any pictures at that location.",
-                            preferredStyle: UIAlertControllerStyle.Alert
-                        )
-                        
-                        let alertAction = UIAlertAction(
-                            title: "Keep Traveling",
-                            style: UIAlertActionStyle.Cancel
-                        )
-                        {
-                            action in
-                            
-                            let travelMap = self.presentingViewController as! TravelMapViewController
-                            travelMap.returningFromPhotoAlbum = true
-                            
-                            self.dismissViewControllerAnimated( true, completion: nil )
-                        }
-                        
-                        alert.addAction( alertAction )
-                        
-                        self.presentViewController(
-                            alert,
-                            animated: true,
-                            completion: nil
-                        )
-                    }
-                }
-                else
-                {
-                    // we've got a photo album!
-                    // save the info to construct URLs to images
-                    self.currentAlbumInfo = photoAlbumInfo!
-                    
-                    // reload the collection view
-                    dispatch_async( dispatch_get_main_queue() )
-                    {
-                        self.photoAlbumCollection.reloadData()
-                    }
+                    self.photoAlbumCollection.reloadData()
                 }
             }
         }
@@ -251,40 +228,14 @@ class PhotoAlbumViewController: UIViewController,
         // get the selected index paths
         let selectedIndexPaths = photoAlbumCollection.indexPathsForSelectedItems() as! [ NSIndexPath ]
         
-        // create an array of indexes from the index paths;
-        // sort the indexes, then reverse them
-        // (i was experiencing some strangeitude, where, beyond a certain point in the collection view,
-        // the selected items weren't being returned in a logical order. upon removing them, an array
-        // index out-of-bounds exception would get thrown, when the collection view tried to access
-        // an item at an index that now was outside the max for the number of items it still contained.
-        // (it's probably difficult to envision what was happening. trust me, this fixed it, even if
-        // it looks horribly inefficent, and just strange, in-and-of-itself)).
-        var selectedItems = [ Int ]()
+        // delete the items from the photo album, the Documents directory, and Core Data
         for indexPath in selectedIndexPaths
         {
-            selectedItems.append( indexPath.item )
-        }
-        
-        var sortedItems = sorted( selectedItems )
-        {
-            item1, item2 in
+            let photo = location.photoAlbum[ indexPath.item ]
+            let photoFilePath = photo.filePath!
             
-            return item1 < item2
-        }
-        let reversedItems = sortedItems.reverse()
-        
-        // delete the Photos from the album;
-        // if we're working with a new collection and haven't fetched them from Core Data, also delete them from the local URL info array,
-        // which is part of the data source
-        for item in reversedItems
-        {
-            let photo = location.photoAlbum[ item ]
+            NSFileManager.defaultManager().removeItemAtURL( photoFilePath, error: nil )
             sharedContext.deleteObject( photo )
-            
-            if !alreadyHaveImages
-            {
-                currentAlbumInfo.removeAtIndex( item )
-            }
         }
         
         // save the context
@@ -292,6 +243,13 @@ class PhotoAlbumViewController: UIViewController,
         
         // delete the items from the collection view
         photoAlbumCollection.deleteItemsAtIndexPaths( selectedIndexPaths )
+        
+        // set the flag, in case the user doesn't request a new collection,
+        // so that a new one will be requested automatically if they return
+        if location.photoAlbum.isEmpty
+        {
+            location.needsNewPhotoAlbum = true
+        }
         
         // return the button to its default state
         toggleButton( NewCollectionButtonState.NewCollection )
@@ -369,21 +327,12 @@ class PhotoAlbumViewController: UIViewController,
         return 1
     }
     
-    // the collection view will either use the photo album fetched from Core Data
-    // or the results returned from Flickr to populate itself
     func collectionView(
         collectionView: UICollectionView,
         numberOfItemsInSection section: Int
     ) -> Int
     {
-        if alreadyHaveImages
-        {
-            return self.location.photoAlbum.count
-        }
-        else
-        {
-            return self.currentAlbumInfo.count
-        }
+        return location.photoAlbum.count
     }
     
     func collectionView(
@@ -397,30 +346,27 @@ class PhotoAlbumViewController: UIViewController,
             forIndexPath: indexPath
         ) as! PhotoAlbumCell
         
+        // set the placeholder image
+        cell.photoImageView.image = UIImage( named: "placeholder" )
+        
         // set cell selection state
         cell.alpha = ( cell.selected ) ? 0.35 : 1.0
         
-        // the Pin came with a Photo from Core Data
-        if alreadyHaveImages
+        // get the Photo for the cell
+        let cellPhoto = location.photoAlbum[ indexPath.item ]
+        
+        // first, check for an image saved to Core Data
+        if let cellImage = cellPhoto.image
         {
-            cell.activityIndicator.hidden = true
             cell.activityIndicator.stopAnimating()
-            
-            let cellImage = location.photoAlbum[ indexPath.item ].image
             cell.photoImageView.image = cellImage
-            
-            return cell
         }
         
-        // if no images from Core Data, look for a cached image
-        // get a Photo at a valid index
-        if !( indexPath.item >= location.photoAlbum.count )
+        // then, check to see if the image has been saved to the device for reuse
+        else if let filePath = cellPhoto.filePath
         {
-            if let cellPhoto = location.photoAlbum[ indexPath.item ]
+            dispatch_async( dispatch_get_main_queue() )
             {
-                let filePath = cellPhoto.filePath!
-                
-                // return image data from the documents directory
                 FlickrClient.sharedInstance().taskForImageData( filePath )
                 {
                     imageData, taskError in
@@ -428,65 +374,37 @@ class PhotoAlbumViewController: UIViewController,
                     // something happened
                     if taskError != nil
                     {
+                        // not going to pop up an alert here;
+                        // we'll just use the placeholder image until the cached image can be retrieved on subsequent cell dequeue
                         dispatch_async( dispatch_get_main_queue() )
                         {
-                            let alert = UIAlertController(
-                                title: "There was an error getting a cached image:",
-                                message: "\( taskError!.localizedDescription )",
-                                preferredStyle: UIAlertControllerStyle.Alert
-                            )
-                            
-                            let alertAction = UIAlertAction(
-                                title: "😓   😓   😓",
-                                style: UIAlertActionStyle.Cancel
-                                )
-                            {
-                                action in
-                                
-                                return
-                            }
-                            
-                            alert.addAction( alertAction )
-                            
-                            self.presentViewController(
-                                alert,
-                                animated: true,
-                                completion: nil
-                            )
+                            cell.photoImageView.image = UIImage( named: "placeholder" )
                         }
                     }
-                    else
+                    else if let cachedImageData = imageData
                     {
-                        // put the image in the cell
-                        let cellImage = UIImage( data: imageData! )
+                        // use the cached image
+                        let cachedImage = UIImage( data: cachedImageData )
                         
                         dispatch_async( dispatch_get_main_queue() )
                         {
-                            cell.photoImageView.image = cellImage
+                            cell.activityIndicator.stopAnimating()
+                            cell.photoImageView.image = cachedImage
                         }
                     }
                 }
-                
-                return cell
             }
-            
-            return cell
         }
         
-        // otherwise, we have to download images from Flickr
+        // otherwise, download the image from Flickr
         else
         {
             cell.activityIndicator.hidden = false
             cell.activityIndicator.startAnimating()
-            cell.photoImageView.image = UIImage( named: "placeholder" )
             
-            // get the URL for the image
-            let imageURL = self.currentAlbumInfo[ indexPath.item ]
-            
-            dispatch_async( dispatch_get_main_queue() )
+            if let imageURL = cellPhoto.imageURL
             {
-                // start the image task
-                let imageTask = FlickrClient.sharedInstance().taskForImage( imageURL )
+                FlickrClient.sharedInstance().taskForImage( imageURL )
                 {
                     imageData, imageError in
                     
@@ -496,7 +414,7 @@ class PhotoAlbumViewController: UIViewController,
                         dispatch_async( dispatch_get_main_queue() )
                         {
                             let alert = UIAlertController(
-                                title: "Couldn't retrieve one of the photos.",
+                                title: "There was an error retrieving one of the photos.",
                                 message: "\( imageError!.localizedDescription )",
                                 preferredStyle: UIAlertControllerStyle.Alert
                             )
@@ -522,19 +440,17 @@ class PhotoAlbumViewController: UIViewController,
                     }
                     else
                     {
-                        // create the Photo object with the downloaded data
-                        let cellPhoto = Photo(
-                            pin: self.location,
-                            imageData: imageData!,
-                            context: self.sharedContext
-                        )
-                        
                         // write the image to the documents directory for caching
+                        cellPhoto.createImageFileURL()
+                        
                         imageData!.writeToURL(
                             cellPhoto.filePath!,
                             options: nil,
                             error: nil
                         )
+                        
+                        // save the image to fetch from Core Data
+                        cellPhoto.image = UIImage( data: imageData! )!
                         
                         // save the context
                         CoreDataStackManager.sharedInstance().saveContext()
@@ -549,9 +465,18 @@ class PhotoAlbumViewController: UIViewController,
                     }
                 }
             }
-            
-            return cell
+            else
+            {
+                // if we couldn't get the URL for the image, set the placeholder;
+                // try again on the next cell dequeue, as above
+                dispatch_async( dispatch_get_main_queue() )
+                {
+                    cell.photoImageView.image = UIImage( named: "placeholder" )
+                }
+            }
         }
+        
+        return cell
     }
     
     func collectionView(
